@@ -90,18 +90,21 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
       return EXIT_SUCCESS;
     }
 
-    const DWORD ready = ::WaitForSingleObject(ready_event, 10000);
-    if (ready == WAIT_OBJECT_0 && BringExistingWindowToFront()) {
+    HANDLE startup_signals[] = {ready_event, single_instance};
+    const DWORD startup =
+        ::WaitForMultipleObjects(2, startup_signals, FALSE, 10000);
+    if (startup == WAIT_OBJECT_0 && BringExistingWindowToFront()) {
       ::CloseHandle(single_instance);
       ::CloseHandle(ready_event);
       return EXIT_SUCCESS;
     }
 
-    // The first process may have died before publishing its window. If its
-    // mutex is now available, take ownership and continue this launch as the
-    // replacement primary instance instead of silently discarding the click.
-    const DWORD mutex = ::WaitForSingleObject(single_instance, 0);
-    if (mutex != WAIT_OBJECT_0 && mutex != WAIT_ABANDONED) {
+    // If the mutex becomes available (or abandoned), the first process exited
+    // before publishing a usable window. This process now owns the mutex and
+    // can replace it immediately instead of throwing away the user's launch.
+    const bool replaced_primary =
+        startup == WAIT_OBJECT_0 + 1 || startup == WAIT_ABANDONED_0 + 1;
+    if (!replaced_primary) {
       ::MessageBoxW(
           nullptr,
           L"Просвет уже запускается, но окно пока недоступно.",
