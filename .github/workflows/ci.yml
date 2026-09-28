@@ -52,17 +52,35 @@ jobs:
       - run: ./tools/fetch-engine.ps1
         shell: pwsh
       - run: flutter build windows --release
-      - name: Package
+      - name: Build installer
+        shell: pwsh
+        run: |
+          choco install innosetup --version=6.7.1 -y --no-progress
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DMyAppVersion=0.1.0" "installer\prosvet.iss"
+      - name: Smoke-test installer and uninstaller
+        shell: pwsh
+        run: |
+          $setup = Get-Item "installer\Output\Prosvet-0.1.0-Setup.exe"
+          $target = Join-Path $env:TEMP "ProsvetInstallSmoke"
+          Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
+          if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
+          if (-not (Test-Path "$target\engine\winws2.exe")) { throw "installed engine is missing" }
+          $uninstall = Get-Item "$target\unins000.exe"
+          Start-Process $uninstall.FullName -ArgumentList "/VERYSILENT","/NORESTART" -Wait
+          if (Test-Path "$target\prosvet.exe") { throw "uninstall left the executable behind" }
+      - name: Package portable build
         shell: pwsh
         run: |
           $bundle = "build/windows/x64/runner/Release"
-          if (-not (Test-Path "$bundle/engine/winws2.exe")) { throw "engine is missing in the bundle" }
           Copy-Item LICENSE, THIRD_PARTY_NOTICES.md $bundle
           Compress-Archive -Path "$bundle/*" -DestinationPath Prosvet-windows-x64.zip
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Prosvet-windows-x64
-          path: Prosvet-windows-x64.zip
+          path: |
+            Prosvet-windows-x64.zip
+            installer/Output/Prosvet-0.1.0-Setup.exe
 
 
   docs-screenshots:
