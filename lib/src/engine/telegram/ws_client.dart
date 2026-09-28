@@ -103,13 +103,15 @@ class WsClient {
           .split(',')
           .map((v) => v.trim());
       final accept = headers['sec-websocket-accept'];
+      final protocol = headers['sec-websocket-protocol']?.toLowerCase();
       final expectedAccept = base64.encode(
         SHA1Digest().process(Uint8List.fromList(ascii.encode('$key$_guid'))),
       );
       if (upgrade != 'websocket' ||
           connection == null ||
           !connection.contains('upgrade') ||
-          accept != expectedAccept) {
+          accept != expectedAccept ||
+          (protocol != null && protocol != 'binary')) {
         throw WsHandshakeException(status, 'invalid WebSocket upgrade');
       }
     } catch (_) {
@@ -137,87 +139,90 @@ class WsClient {
   Stream<Uint8List> messages() async* {
     final fragments = BytesBuilder(copy: false);
     var fragmented = false;
-    while (!_closed) {
-      final h = await _reader.read(2);
-      if (h == null) break;
+    try {
+      while (!_closed) {
+        final h = await _reader.read(2);
+        if (h == null) break;
 
-      final fin = h[0] & 0x80 != 0;
-      final rsv = h[0] & 0x70;
-      final op = h[0] & 0x0f;
-      final masked = h[1] & 0x80 != 0;
-      if (rsv != 0) throw WsProtocolException('unexpected RSV bits');
-      if (masked) throw WsProtocolException('server frame is masked');
+        final fin = h[0] & 0x80 != 0;
+        final rsv = h[0] & 0x70;
+        final op = h[0] & 0x0f;
+        final masked = h[1] & 0x80 != 0;
+        if (rsv != 0) throw WsProtocolException('unexpected RSV bits');
+        if (masked) throw WsProtocolException('server frame is masked');
 
-      var len = h[1] & 0x7f;
-      if (len == 126) {
-        final e = await _reader.read(2);
-        if (e == null) break;
-        len = e[0] << 8 | e[1];
-      } else if (len == 127) {
-        final e = await _reader.read(8);
-        if (e == null) break;
-        len = ByteData.sublistView(e).getUint64(0);
-      }
-      if (len > _maxFrameBytes) {
-        throw WsProtocolException('incoming frame is too large');
-      }
+        var len = h[1] & 0x7f;
+        if (len == 126) {
+          final e = await _reader.read(2);
+          if (e == null) break;
+          len = e[0] << 8 | e[1];
+        } else if (len == 127) {
+          final e = await _reader.read(8);
+          if (e == null) break;
+          len = ByteData.sublistView(e).getUint64(0);
+        }
+        if (len > _maxFrameBytes) {
+          throw WsProtocolException('incoming frame is too large');
+        }
 
-      final isControl = op >= _opClose;
-      if (isControl && (!fin || len > 125)) {
-        throw WsProtocolException('invalid control frame');
-      }
-      if (op == _opCont && !fragmented) {
-        throw WsProtocolException('unexpected continuation frame');
-      }
-      if ((op == _opBinary) && fragmented) {
-        throw WsProtocolException('new data frame during fragmentation');
-      }
-      if (op != _opCont &&
-          op != _opBinary &&
-          op != _opClose &&
-          op != _opPing &&
-          op != _opPong) {
-        throw WsProtocolException('unsupported opcode $op');
-      }
+        final isControl = op >= _opClose;
+        if (isControl && (!fin || len > 125)) {
+          throw WsProtocolException('invalid control frame');
+        }
+        if (op == _opCont && !fragmented) {
+          throw WsProtocolException('unexpected continuation frame');
+        }
+        if (op == _opBinary && fragmented) {
+          throw WsProtocolException('new data frame during fragmentation');
+        }
+        if (op != _opCont &&
+            op != _opBinary &&
+            op != _opClose &&
+            op != _opPing &&
+            op != _opPong) {
+          throw WsProtocolException('unsupported opcode $op');
+        }
 
-      final payload = len == 0 ? Uint8List(0) : await _reader.read(len);
-      if (payload == null) break;
+        final payload = len == 0 ? Uint8List(0) : await _reader.read(len);
+        if (payload == null) break;
 
-      switch (op) {
-        case _opClose:
-          if (!_closed) {
-            _socket.add(
-              encodeFrame(
-                _opClose,
-                payload.length >= 2 ? payload.sublist(0, 2) : Uint8List(0),
-                _rnd,
-              ),
-            );
-          }
-          _closed = true;
-        case _opPing:
-          _socket.add(encodeFrame(_opPong, payload, _rnd));
-        case _opPong:
-          break;
-        case _opBinary:
-          if (fin) {
-            yield payload;
-          } else {
+        switch (op) {
+          case _opClose:
+            if (!_closed) {
+              _socket.add(
+                encodeFrame(
+                  _opClose,
+                  payload.length >= 2 ? payload.sublist(0, 2) : Uint8List(0),
+                  _rnd,
+                ),
+              );
+            }
+            _closed = true;
+          case _opPing:
+            _socket.add(encodeFrame(_opPong, payload, _rnd));
+          case _opPong:
+            break;
+          case _opBinary:
+            if (fin) {
+              yield payload;
+            } else {
+              fragments.add(payload);
+              fragmented = true;
+            }
+          case _opCont:
             fragments.add(payload);
-            fragmented = true;
-          }
-        case _opCont:
-          fragments.add(payload);
-          if (fragments.length > _maxFrameBytes) {
-            throw WsProtocolException('fragmented message is too large');
-          }
-          if (fin) {
-            fragmented = false;
-            yield fragments.takeBytes();
-          }
+            if (fragments.length > _maxFrameBytes) {
+              throw WsProtocolException('fragmented message is too large');
+            }
+            if (fin) {
+              fragmented = false;
+              yield fragments.takeBytes();
+            }
+        }
       }
+    } finally {
+      await close();
     }
-    await close();
   }
 
   Future<void> close() async {
