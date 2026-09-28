@@ -1,5 +1,7 @@
 #define MyAppName "Просвет"
+#ifndef MyAppVersion
 #define MyAppVersion "0.1.0"
+#endif
 #define MyAppPublisher "levvs-one"
 #define MyAppExeName "prosvet.exe"
 
@@ -14,7 +16,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-OutputBaseFilename=Prosvet-Setup
+OutputBaseFilename=Prosvet-{#MyAppVersion}-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -22,7 +24,7 @@ SetupIconFile=..\windows\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 CloseApplications=yes
 RestartApplications=no
-VersionInfoVersion=0.1.0.0
+VersionInfoVersion={#MyAppVersion}.0
 VersionInfoProductName=Просвет
 VersionInfoDescription=Просвет — доступ к сервисам без VPN
 
@@ -41,6 +43,9 @@ Filename: "{app}\{#MyAppExeName}"; Description: "Запустить Просве
 [UninstallRun]
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""Prosvet"" /F"; Flags: runhidden waituntilterminated
 Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Command ""$ErrorActionPreference='SilentlyContinue'; Get-DnsClientNrptRule | Where-Object { $_.Comment -eq 'Prosvet' } | ForEach-Object { Remove-DnsClientNrptRule -Name $_.Name -Force }; Clear-DnsClientCache"""; Flags: runhidden waituntilterminated
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{localappdata}\Prosvet"
 
 [Code]
 function InitializeUninstall(): Boolean;
