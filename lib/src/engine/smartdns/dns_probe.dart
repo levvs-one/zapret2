@@ -33,21 +33,30 @@ Future<bool> probeDnsServer(
   String name, {
   Duration timeout = const Duration(seconds: 3),
 }) async {
-  final id = Random.secure().nextInt(0xffff);
-  final socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
-  final done = Completer<bool>();
-  final sub = socket.listen((event) {
-    if (event != RawSocketEvent.read) return;
-    final d = socket.receive();
-    if (d == null) return;
-    final n = dnsAnswerCount(d.data, id);
-    if (n != null && !done.isCompleted) done.complete(n > 0);
-  });
-  socket.send(buildDnsQuery(name, id), InternetAddress(server), 53);
+  RawDatagramSocket? socket;
+  StreamSubscription<RawSocketEvent>? sub;
   try {
+    final id = Random.secure().nextInt(0xffff);
+    socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
+    final done = Completer<bool>();
+    sub = socket.listen(
+      (event) {
+        if (event != RawSocketEvent.read) return;
+        final d = socket?.receive();
+        if (d == null) return;
+        final n = dnsAnswerCount(d.data, id);
+        if (n != null && !done.isCompleted) done.complete(n > 0);
+      },
+      onError: (_) {
+        if (!done.isCompleted) done.complete(false);
+      },
+    );
+    socket.send(buildDnsQuery(name, id), InternetAddress(server), 53);
     return await done.future.timeout(timeout, onTimeout: () => false);
+  } catch (_) {
+    return false;
   } finally {
-    await sub.cancel();
-    socket.close();
+    await sub?.cancel();
+    socket?.close();
   }
 }
