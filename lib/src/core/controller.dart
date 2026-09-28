@@ -242,6 +242,7 @@ class Controller extends ChangeNotifier {
   }
 
   Future<void> _failAndShutdown(String message) async {
+    if (power == Power.off) return;
     error = message;
     ++_lifecycleGeneration;
     ++_healthGeneration;
