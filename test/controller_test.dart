@@ -15,6 +15,7 @@ class FakeBackend implements Backend {
   final Map<String, List<bool>> answers = {};
   bool telegram = false;
   Completer<void>? smartDnsGate;
+  Completer<void>? stopDpiGate;
 
   @override
   Stream<String> get faults => faultsCtl.stream;
@@ -36,7 +37,10 @@ class FakeBackend implements Backend {
   }
 
   @override
-  Future<void> stopDpi() async => calls.add('stopDpi');
+  Future<void> stopDpi() async {
+    calls.add('stopDpi');
+    await stopDpiGate?.future;
+  }
 
   @override
   Future<void> applySmartDns(List<String> domains, List<String> servers) async {
@@ -145,6 +149,27 @@ void main() {
       backend.calls,
       containsAllInOrder(['dns $dnsDomains', 'stopDpi', 'clearDns', 'stopTg']),
     );
+  });
+
+  test('a second stop waits for the in-flight shutdown', () async {
+    await c.init(connect: false);
+    await c.start();
+    backend.stopDpiGate = Completer<void>();
+
+    final first = c.stop();
+    await pumpEventQueue();
+    expect(c.power, Power.stopping);
+
+    var secondReturned = false;
+    final second = c.stop().then((_) => secondReturned = true);
+    await pumpEventQueue();
+    expect(secondReturned, isFalse);
+
+    backend.stopDpiGate!.complete();
+    await Future.wait([first, second]);
+
+    expect(secondReturned, isTrue);
+    expect(c.power, Power.off);
   });
 
   test('engine crash turns the app off', () async {
