@@ -185,16 +185,18 @@ class _ServiceTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Tooltip(
-            message: tooltip,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          if (health != Health.idle) ...[
+            Tooltip(
+              message: tooltip,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              ),
             ),
-          ),
-          const SizedBox(width: 14),
+            const SizedBox(width: 14),
+          ],
           Switch(
             value: enabled,
             onChanged: (value) => c.setEnabled(service, value),
