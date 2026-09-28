@@ -107,7 +107,14 @@ class Controller extends ChangeNotifier {
   }
 
   Future<void> stop() async {
-    if (power == Power.off || power == Power.stopping) return;
+    if (power == Power.off) return;
+    if (power == Power.stopping) {
+      // Callers such as the tray "Exit" action need a completion barrier, not
+      // a no-op. Otherwise the process can exit while NRPT cleanup is still
+      // running.
+      await _operations;
+      return;
+    }
     ++_lifecycleGeneration;
     ++_healthGeneration;
     power = Power.stopping;
