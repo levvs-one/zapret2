@@ -4,7 +4,7 @@ import '../core/controller.dart';
 import '../platform/autostart.dart';
 import 'widgets.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({
     super.key,
     required this.controller,
@@ -18,43 +18,12 @@ class SettingsPage extends StatefulWidget {
   final VoidCallback openLog;
   final String version;
 
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
-class _SettingsPageState extends State<SettingsPage> {
-  bool? _autostart;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.autostart?.isEnabled().then((value) {
-      if (mounted) setState(() => _autostart = value);
-    });
-  }
-
-  Future<void> _setAutostart(bool value) async {
-    final autostart = widget.autostart;
-    if (autostart == null) return;
-    setState(() => _autostart = value);
-    try {
-      await autostart.setEnabled(value);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _autostart = !value);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Не удалось изменить автозапуск: $e')),
-      );
-    }
-  }
-
-  void _open(Widget page) {
+  void _open(BuildContext context, Widget page) {
     Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => page));
   }
 
   @override
   Widget build(BuildContext context) {
-    final c = widget.controller;
     return Scaffold(
       appBar: AppBar(title: const Text('Настройки')),
       body: Center(
@@ -69,27 +38,25 @@ class _SettingsPageState extends State<SettingsPage> {
                     icon: Icons.power_settings_new_rounded,
                     title: 'Запуск',
                     onTap: () => _open(
+                      context,
                       _StartupPage(
-                        controller: c,
-                        autostart: widget.autostart,
-                        autostartValue: _autostart,
-                        setAutostart: _setAutostart,
+                        controller: controller,
+                        autostart: autostart,
                       ),
                     ),
                   ),
                   _MenuTile(
                     icon: Icons.language_rounded,
                     title: 'Сеть',
-                    onTap: () => _open(_NetworkPage(controller: c)),
+                    onTap: () =>
+                        _open(context, _NetworkPage(controller: controller)),
                   ),
                   _MenuTile(
                     icon: Icons.info_outline_rounded,
                     title: 'О программе',
                     onTap: () => _open(
-                      _AboutPage(
-                        version: widget.version,
-                        openLog: widget.openLog,
-                      ),
+                      context,
+                      _AboutPage(version: version, openLog: openLog),
                     ),
                   ),
                 ],
@@ -128,38 +95,61 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-class _StartupPage extends StatelessWidget {
-  const _StartupPage({
-    required this.controller,
-    required this.autostart,
-    required this.autostartValue,
-    required this.setAutostart,
-  });
+class _StartupPage extends StatefulWidget {
+  const _StartupPage({required this.controller, required this.autostart});
 
   final Controller controller;
   final Autostart? autostart;
-  final bool? autostartValue;
-  final ValueChanged<bool> setAutostart;
+
+  @override
+  State<_StartupPage> createState() => _StartupPageState();
+}
+
+class _StartupPageState extends State<_StartupPage> {
+  bool? _autostart;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.autostart?.isEnabled().then((value) {
+      if (mounted) setState(() => _autostart = value);
+    });
+  }
+
+  Future<void> _setAutostart(bool value) async {
+    final autostart = widget.autostart;
+    if (autostart == null) return;
+    setState(() => _autostart = value);
+    try {
+      await autostart.setEnabled(value);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _autostart = !value);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Не удалось изменить автозапуск: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: controller,
+      listenable: widget.controller,
       builder: (context, _) => _SettingsScaffold(
         title: 'Запуск',
         child: Section(
           children: [
             SwitchListTile(
               title: const Text('Вместе с Windows'),
-              value: autostartValue ?? false,
-              onChanged: autostart == null || autostartValue == null
+              value: _autostart ?? false,
+              onChanged: widget.autostart == null || _autostart == null
                   ? null
-                  : setAutostart,
+                  : _setAutostart,
             ),
             SwitchListTile(
               title: const Text('Включать сразу'),
-              value: controller.settings.connectOnLaunch,
-              onChanged: controller.setConnectOnLaunch,
+              value: widget.controller.settings.connectOnLaunch,
+              onChanged: widget.controller.setConnectOnLaunch,
             ),
           ],
         ),
