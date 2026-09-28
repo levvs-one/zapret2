@@ -34,7 +34,7 @@ abstract final class AppTheme {
       ),
       listTileTheme: ListTileThemeData(
         contentPadding: const EdgeInsets.only(left: 20, right: 14),
-        minTileHeight: 58,
+        minTileHeight: 55,
         minVerticalPadding: 10,
         iconColor: scheme.onSurfaceVariant,
         titleTextStyle: text.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
