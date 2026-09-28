@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+
+  engine:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Verify winws2 arguments with zapret2 itself
+        run: tools/verify-engine-args.sh
+
+  windows:
+    runs-on: windows-latest
+    needs: check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: ./tools/fetch-engine.ps1
+        shell: pwsh
+      - run: flutter build windows --release
+      - name: Package
+        shell: pwsh
+        run: |
+          $bundle = "build/windows/x64/runner/Release"
+          if (-not (Test-Path "$bundle/engine/winws2.exe")) { throw "engine is missing in the bundle" }
+          Copy-Item LICENSE, THIRD_PARTY_NOTICES.md $bundle
+          Compress-Archive -Path "$bundle/*" -DestinationPath Prosvet-windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Prosvet-windows-x64
+          path: Prosvet-windows-x64.zip
