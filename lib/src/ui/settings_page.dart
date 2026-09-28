@@ -10,12 +10,14 @@ class SettingsPage extends StatelessWidget {
     required this.controller,
     required this.autostart,
     required this.openLog,
+    required this.openIssues,
     required this.version,
   });
 
   final Controller controller;
   final Autostart? autostart;
   final VoidCallback openLog;
+  final VoidCallback openIssues;
   final String version;
 
   void _open(BuildContext context, Widget page) {
@@ -56,7 +58,11 @@ class SettingsPage extends StatelessWidget {
                     title: 'О программе',
                     onTap: () => _open(
                       context,
-                      _AboutPage(version: version, openLog: openLog),
+                      _AboutPage(
+                        version: version,
+                        openLog: openLog,
+                        openIssues: openIssues,
+                      ),
                     ),
                   ),
                 ],
@@ -202,10 +208,15 @@ class _NetworkPage extends StatelessWidget {
 }
 
 class _AboutPage extends StatelessWidget {
-  const _AboutPage({required this.version, required this.openLog});
+  const _AboutPage({
+    required this.version,
+    required this.openLog,
+    required this.openIssues,
+  });
 
   final String version;
   final VoidCallback openLog;
+  final VoidCallback openIssues;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +229,11 @@ class _AboutPage extends StatelessWidget {
             title: const Text('Журнал'),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: openLog,
+          ),
+          ListTile(
+            title: const Text('Сообщить о проблеме'),
+            trailing: const Icon(Icons.open_in_new_rounded, size: 20),
+            onTap: openIssues,
           ),
           ListTile(
             title: const Text('Лицензии'),
