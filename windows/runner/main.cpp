@@ -8,10 +8,19 @@
 namespace {
 
 constexpr wchar_t kSingleInstanceMutex[] = L"Local\\Prosvet.SingleInstance";
-constexpr wchar_t kWindowClass[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
+constexpr wchar_t kWindowProperty[] = L"Prosvet.SingleInstance.Window";
+
+BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
+  if (::GetPropW(window, kWindowProperty) == nullptr) {
+    return TRUE;
+  }
+  *reinterpret_cast<HWND*>(result_ptr) = window;
+  return FALSE;
+}
 
 void BringExistingWindowToFront() {
-  HWND existing = ::FindWindowW(kWindowClass, L"Prosvet");
+  HWND existing = nullptr;
+  ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
   if (existing == nullptr) {
     return;
   }
@@ -89,6 +98,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::CloseHandle(single_instance);
     return EXIT_FAILURE;
   }
+  // The Dart side can change the visible title at runtime. A window property is
+  // a stable cross-process identity for the second-launch path.
+  ::SetPropW(window.GetHandle(), kWindowProperty,
+             reinterpret_cast<HANDLE>(1));
   window.SetQuitOnClose(true);
 
   ::MSG msg;
