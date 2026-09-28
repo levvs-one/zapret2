@@ -12,6 +12,9 @@ enum Power { off, starting, on, stopping }
 enum Health { idle, checking, ok, failing }
 
 /// Single source of truth for the UI.
+///
+/// Backend mutations are serialized so start/stop/service changes cannot race
+/// each other and leave Windows in a state that disagrees with the UI.
 class Controller extends ChangeNotifier {
   Controller({
     required this.backend,
@@ -20,9 +23,8 @@ class Controller extends ChangeNotifier {
     this.probeAttempts = 6,
     this.probeInterval = const Duration(milliseconds: 1200),
   }) {
-    _faultSub = backend.faults.listen((message) async {
-      error = message;
-      await _shutdown();
+    _faultSub = backend.faults.listen((message) {
+      unawaited(_failAndShutdown(message));
     });
   }
 
@@ -43,7 +45,12 @@ class Controller extends ChangeNotifier {
   };
 
   late final StreamSubscription<String> _faultSub;
-  var _generation = 0;
+
+  // OS mutations must never overlap. The lifecycle generation cancels queued
+  // work after stop/fault; the health generation only invalidates old probes.
+  Future<void> _operations = Future<void>.value();
+  var _lifecycleGeneration = 0;
+  var _healthGeneration = 0;
 
   SmartDnsProvider get dnsProvider =>
       SmartDnsProvider.byId(settings.dnsProvider);
@@ -58,8 +65,9 @@ class Controller extends ChangeNotifier {
   Future<void> init({required bool connect}) async {
     unsupported = await backend.unsupportedReason();
     if (unsupported == null) {
-      // Leftovers after a crash or a forced shutdown.
-      await _guard(backend.clearSmartDns);
+      // Leftovers after a crash or a forced shutdown. Single-instance
+      // enforcement in the Windows runner makes this safe for a live session.
+      await _exclusive(() => _guard(backend.clearSmartDns));
     }
     notifyListeners();
     if (unsupported == null && connect) await start();
@@ -69,28 +77,42 @@ class Controller extends ChangeNotifier {
 
   Future<void> start() async {
     if (power != Power.off || unsupported != null) return;
-    final gen = ++_generation;
+
+    final lifecycleGen = ++_lifecycleGeneration;
+    final healthGen = ++_healthGeneration;
     error = null;
     power = Power.starting;
     notifyListeners();
+
     try {
-      await _applyAll();
-      if (gen != _generation) return;
-      power = Power.on;
-      notifyListeners();
-      await _checkAll(gen);
+      final started = await _exclusive(() async {
+        if (lifecycleGen != _lifecycleGeneration) return false;
+        await _applyAll(lifecycleGen);
+        if (lifecycleGen != _lifecycleGeneration) return false;
+        power = Power.on;
+        notifyListeners();
+        return true;
+      });
+      if (!started) return;
+      await _checkAll(healthGen);
     } catch (e) {
+      if (lifecycleGen != _lifecycleGeneration) return;
       error = _describe(e);
-      await _shutdown();
+      ++_lifecycleGeneration;
+      ++_healthGeneration;
+      power = Power.stopping;
+      notifyListeners();
+      await _exclusive(_shutdown);
     }
   }
 
   Future<void> stop() async {
     if (power == Power.off || power == Power.stopping) return;
-    _generation++;
+    ++_lifecycleGeneration;
+    ++_healthGeneration;
     power = Power.stopping;
     notifyListeners();
-    await _shutdown();
+    await _exclusive(_shutdown);
   }
 
   Future<void> setEnabled(Service s, bool on) async {
@@ -103,13 +125,27 @@ class Controller extends ChangeNotifier {
     health[s.id] = Health.idle;
     notifyListeners();
     if (power != Power.on) return;
-    final gen = ++_generation;
+
+    final lifecycleGen = _lifecycleGeneration;
+    final healthGen = ++_healthGeneration;
     try {
-      await _applyMechanism(s.mechanism);
-      if (on) await _check([s], gen);
+      final applied = await _exclusive(() async {
+        if (power != Power.on || lifecycleGen != _lifecycleGeneration) {
+          return false;
+        }
+        await _applyMechanism(s.mechanism);
+        return power == Power.on &&
+            lifecycleGen == _lifecycleGeneration;
+      });
+      if (applied && on) await _check([s], healthGen);
     } catch (e) {
+      if (lifecycleGen != _lifecycleGeneration) return;
       error = _describe(e);
-      await _shutdown();
+      ++_lifecycleGeneration;
+      ++_healthGeneration;
+      power = Power.stopping;
+      notifyListeners();
+      await _exclusive(_shutdown);
     }
   }
 
@@ -121,13 +157,14 @@ class Controller extends ChangeNotifier {
 
   Future<void> recheck() async {
     if (power != Power.on) return;
-    await _checkAll(++_generation);
+    await _checkAll(++_healthGeneration);
   }
 
   Future<void> openTelegram() => backend.openTelegramLink();
 
-  Future<void> _applyAll() async {
+  Future<void> _applyAll(int lifecycleGen) async {
     for (final m in Mechanism.values) {
+      if (lifecycleGen != _lifecycleGeneration) return;
       await _applyMechanism(m);
     }
   }
@@ -169,31 +206,47 @@ class Controller extends ChangeNotifier {
       _check(Catalog.all.where(settings.isOn).toList(), gen);
 
   Future<void> _check(List<Service> services, int gen) async {
+    if (gen != _healthGeneration) return;
     for (final s in services) {
       health[s.id] = Health.checking;
     }
     notifyListeners();
+
     await Future.wait(
       services.map((s) async {
         for (var i = 0; i < probeAttempts; i++) {
-          if (gen != _generation) return;
+          if (gen != _healthGeneration) return;
           if (await backend.probe(s, dnsProvider.servers)) {
-            if (gen == _generation) health[s.id] = Health.ok;
-            notifyListeners();
+            if (gen == _healthGeneration) {
+              health[s.id] = Health.ok;
+              notifyListeners();
+            }
             return;
           }
           // Only DPI profiles improve by retrying: zapret2 rotates strategies.
           if (s.mechanism != Mechanism.dpi) break;
           await Future<void>.delayed(probeInterval);
         }
-        if (gen == _generation) health[s.id] = Health.failing;
-        notifyListeners();
+        if (gen == _healthGeneration) {
+          health[s.id] = Health.failing;
+          notifyListeners();
+        }
       }),
     );
   }
 
+  Future<void> _failAndShutdown(String message) async {
+    error = message;
+    ++_lifecycleGeneration;
+    ++_healthGeneration;
+    if (power != Power.off) {
+      power = Power.stopping;
+      notifyListeners();
+    }
+    await _exclusive(_shutdown);
+  }
+
   Future<void> _shutdown() async {
-    _generation++;
     await _guard(backend.stopDpi);
     await _guard(backend.clearSmartDns);
     await _guard(backend.stopTelegram);
@@ -202,6 +255,18 @@ class Controller extends ChangeNotifier {
     }
     power = Power.off;
     notifyListeners();
+  }
+
+  Future<T> _exclusive<T>(Future<T> Function() action) {
+    final done = Completer<T>();
+    _operations = _operations.then((_) async {
+      try {
+        done.complete(await action());
+      } catch (e, st) {
+        done.completeError(e, st);
+      }
+    });
+    return done.future;
   }
 
   Future<void> _guard(Future<void> Function() f) async {
