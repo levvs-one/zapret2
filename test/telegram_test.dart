@@ -127,25 +127,24 @@ void main() {
     expect(decoded, payload);
   });
 
-  test('dns query and answer parsing', () {
+  test('dns query and A-answer parsing', () {
     final q = buildDnsQuery('claude.ai', 0x1234);
     expect(q.sublist(0, 2), [0x12, 0x34]);
     expect(q.sublist(12, 19), [6, ...'claude'.codeUnits]);
+
     final answer = Uint8List.fromList([
-      0x12,
-      0x34,
-      0x81,
-      0x80,
-      0,
-      1,
-      0,
-      2,
-      0,
-      0,
-      0,
-      0,
+      0x12, 0x34, 0x81, 0x80,
+      0, 1, 0, 1, 0, 0, 0, 0,
+      6, ...'claude'.codeUnits, 2, ...'ai'.codeUnits, 0,
+      0, 1, 0, 1,
+      0xc0, 0x0c,
+      0, 1, 0, 1,
+      0, 0, 0, 60,
+      0, 4,
+      203, 0, 113, 42,
     ]);
-    expect(dnsAnswerCount(answer, 0x1234), 2);
-    expect(dnsAnswerCount(answer, 0x1235), isNull);
+    expect(dnsAnswerCount(answer, 0x1234), 1);
+    expect(dnsAAnswers(answer, 0x1234), {'203.0.113.42'});
+    expect(dnsAAnswers(answer, 0x1235), isNull);
   });
 }
