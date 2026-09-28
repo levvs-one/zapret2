@@ -139,6 +139,14 @@ class WsClient {
   Stream<Uint8List> messages() async* {
     final fragments = BytesBuilder(copy: false);
     var fragmented = false;
+
+    void addFragment(Uint8List payload) {
+      if (fragments.length + payload.length > _maxFrameBytes) {
+        throw WsProtocolException('fragmented message is too large');
+      }
+      fragments.add(payload);
+    }
+
     try {
       while (!_closed) {
         final h = await _reader.read(2);
@@ -206,14 +214,11 @@ class WsClient {
             if (fin) {
               yield payload;
             } else {
-              fragments.add(payload);
+              addFragment(payload);
               fragmented = true;
             }
           case _opCont:
-            fragments.add(payload);
-            if (fragments.length > _maxFrameBytes) {
-              throw WsProtocolException('fragmented message is too large');
-            }
+            addFragment(payload);
             if (fin) {
               fragmented = false;
               yield fragments.takeBytes();
