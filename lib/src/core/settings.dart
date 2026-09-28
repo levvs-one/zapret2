@@ -70,7 +70,38 @@ class Settings {
   static Settings load(String file) {
     try {
       final j = jsonDecode(File(file).readAsStringSync());
-      if (j is Map<String, Object?>) return fromJson(j);
+      if (j is Map<String, Object?>) {
+        final settings = fromJson(j);
+        final secret = j['telegramSecret'];
+        if (secret is! String ||
+            !RegExp(r'^[0-9a-f]{32}
+    } catch (_) {}
+
+    // The Telegram proxy secret is part of the client configuration. Persist a
+    // generated default immediately so a restart cannot silently rotate it.
+    final defaults = Settings.defaults();
+    try {
+      defaults.save(file);
+    } catch (_) {
+      // Startup must still work if the settings directory is temporarily
+      // unwritable. A later explicit settings change will retry the save.
+    }
+    return defaults;
+  }
+
+  void save(String file) {
+    final tmp = File('$file.tmp')
+      ..writeAsStringSync(const JsonEncoder.withIndent('  ').convert(toJson()));
+    tmp.renameSync(file);
+  }
+}
+).hasMatch(secret)) {
+          try {
+            settings.save(file);
+          } catch (_) {}
+        }
+        return settings;
+      }
     } catch (_) {}
 
     // The Telegram proxy secret is part of the client configuration. Persist a
