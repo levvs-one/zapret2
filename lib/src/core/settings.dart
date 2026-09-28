@@ -30,6 +30,9 @@ class Settings {
 
   bool isOn(Service s) => enabled.contains(s.id);
 
+  static bool _validSecret(Object? value) =>
+      value is String && RegExp(r'^[0-9a-f]{32}$').hasMatch(value);
+
   static String _randomSecret() {
     final r = Random.secure();
     return List.generate(
@@ -59,10 +62,7 @@ class Settings {
           : d.enabled,
       dnsProvider: j['dnsProvider'] as String? ?? d.dnsProvider,
       telegramPort: j['telegramPort'] as int? ?? d.telegramPort,
-      telegramSecret:
-          secret is String && RegExp(r'^[0-9a-f]{32}$').hasMatch(secret)
-          ? secret
-          : d.telegramSecret,
+      telegramSecret: _validSecret(secret) ? secret as String : d.telegramSecret,
       connectOnLaunch: j['connectOnLaunch'] as bool? ?? d.connectOnLaunch,
     );
   }
@@ -72,30 +72,7 @@ class Settings {
       final j = jsonDecode(File(file).readAsStringSync());
       if (j is Map<String, Object?>) {
         final settings = fromJson(j);
-        final secret = j['telegramSecret'];
-        if (secret is! String ||
-            !RegExp(r'^[0-9a-f]{32}
-    } catch (_) {}
-
-    // The Telegram proxy secret is part of the client configuration. Persist a
-    // generated default immediately so a restart cannot silently rotate it.
-    final defaults = Settings.defaults();
-    try {
-      defaults.save(file);
-    } catch (_) {
-      // Startup must still work if the settings directory is temporarily
-      // unwritable. A later explicit settings change will retry the save.
-    }
-    return defaults;
-  }
-
-  void save(String file) {
-    final tmp = File('$file.tmp')
-      ..writeAsStringSync(const JsonEncoder.withIndent('  ').convert(toJson()));
-    tmp.renameSync(file);
-  }
-}
-).hasMatch(secret)) {
+        if (!_validSecret(j['telegramSecret'])) {
           try {
             settings.save(file);
           } catch (_) {}
