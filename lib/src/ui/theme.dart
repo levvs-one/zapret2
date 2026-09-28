@@ -36,9 +36,8 @@ abstract final class AppTheme {
         iconColor: scheme.onSurfaceVariant,
         titleTextStyle: text.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
-      switchTheme: SwitchThemeData(
+      switchTheme: const SwitchThemeData(
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        thumbIcon: const WidgetStatePropertyAll(null),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
