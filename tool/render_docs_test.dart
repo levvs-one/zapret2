@@ -134,6 +134,7 @@ void main() {
       controller: controller,
       autostart: null,
       openLog: () {},
+      openIssues: () {},
       version: '0.1.0',
     );
 
