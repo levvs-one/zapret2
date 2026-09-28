@@ -20,28 +20,31 @@ class _FakeShell implements Shell {
 }
 
 void main() {
-  test('autostart creates one elevated background task with quoted exe', () async {
-    final shell = _FakeShell();
-    const exe = r'C:\Program Files\Prosvet\prosvet.exe';
-    final autostart = Autostart(shell, exe);
+  test(
+    'autostart creates one elevated background task with quoted exe',
+    () async {
+      final shell = _FakeShell();
+      const exe = r'C:\Program Files\Prosvet\prosvet.exe';
+      final autostart = Autostart(shell, exe);
 
-    await autostart.setEnabled(true);
+      await autostart.setEnabled(true);
 
-    expect(shell.calls, hasLength(1));
-    expect(shell.calls.single.executable, 'schtasks.exe');
-    expect(shell.calls.single.args, [
-      '/Create',
-      '/TN',
-      'Prosvet',
-      '/TR',
-      '"$exe" --background',
-      '/SC',
-      'ONLOGON',
-      '/RL',
-      'HIGHEST',
-      '/F',
-    ]);
-  });
+      expect(shell.calls, hasLength(1));
+      expect(shell.calls.single.executable, 'schtasks.exe');
+      expect(shell.calls.single.args, [
+        '/Create',
+        '/TN',
+        'Prosvet',
+        '/TR',
+        '"$exe" --background',
+        '/SC',
+        'ONLOGON',
+        '/RL',
+        'HIGHEST',
+        '/F',
+      ]);
+    },
+  );
 
   test('autostart deletion removes the same scheduled task', () async {
     final shell = _FakeShell();
