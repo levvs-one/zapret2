@@ -39,10 +39,7 @@ class FakeBackend implements Backend {
   Future<void> stopDpi() async => calls.add('stopDpi');
 
   @override
-  Future<void> applySmartDns(
-    List<String> domains,
-    List<String> servers,
-  ) async {
+  Future<void> applySmartDns(List<String> domains, List<String> servers) async {
     calls.add('dns ${domains.length}');
     await smartDnsGate?.future;
   }
@@ -146,12 +143,7 @@ void main() {
     expect(backend.calls, isNot(contains('tg')));
     expect(
       backend.calls,
-      containsAllInOrder([
-        'dns $dnsDomains',
-        'stopDpi',
-        'clearDns',
-        'stopTg',
-      ]),
+      containsAllInOrder(['dns $dnsDomains', 'stopDpi', 'clearDns', 'stopTg']),
     );
   });
 
