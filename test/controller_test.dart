@@ -131,7 +131,7 @@ void main() {
 
     final starting = c.start();
     await pumpEventQueue(times: 10);
-    expect(backend.calls, contains('dns 29'));
+    final dnsDomains = Catalog.all\n        .where((s) => s.mechanism == Mechanism.smartDns)\n        .fold<int>(0, (n, s) => n + s.domains.length);\n    expect(backend.calls, contains('dns $dnsDomains'));
     expect(c.power, Power.starting);
 
     final stopping = c.stop();
@@ -143,7 +143,7 @@ void main() {
     expect(backend.calls, isNot(contains('tg')));
     expect(
       backend.calls,
-      containsAllInOrder(['dns 29', 'stopDpi', 'clearDns', 'stopTg']),
+      containsAllInOrder([\n        'dns $dnsDomains',\n        'stopDpi',\n        'clearDns',\n        'stopTg',\n      ]),
     );
   });
 
