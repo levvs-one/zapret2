@@ -136,7 +136,7 @@ class Controller extends ChangeNotifier {
         await _applyMechanism(s.mechanism);
         return power == Power.on && lifecycleGen == _lifecycleGeneration;
       });
-      if (applied && on) await _check([s], healthGen);
+      if (applied) await _checkAll(healthGen);
     } catch (e) {
       if (lifecycleGen != _lifecycleGeneration) return;
       error = _describe(e);
