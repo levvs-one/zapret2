@@ -20,7 +20,14 @@ BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
 
 void BringExistingWindowToFront() {
   HWND existing = nullptr;
-  ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
+  // The mutex is created before the first Flutter window. A near-simultaneous
+  // second launch can therefore win this lookup by a few milliseconds.
+  for (int attempt = 0; attempt < 20 && existing == nullptr; ++attempt) {
+    ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
+    if (existing == nullptr) {
+      ::Sleep(50);
+    }
+  }
   if (existing == nullptr) {
     return;
   }
