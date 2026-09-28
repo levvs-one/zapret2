@@ -134,8 +134,7 @@ class Controller extends ChangeNotifier {
           return false;
         }
         await _applyMechanism(s.mechanism);
-        return power == Power.on &&
-            lifecycleGen == _lifecycleGeneration;
+        return power == Power.on && lifecycleGen == _lifecycleGeneration;
       });
       if (applied && on) await _check([s], healthGen);
     } catch (e) {
