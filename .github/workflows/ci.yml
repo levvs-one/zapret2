@@ -76,6 +76,15 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
+      - name: Locate snapshot fonts
+        shell: bash
+        run: |
+          font="$(fc-match -f '%{file}' 'DejaVu Sans')"
+          test -f "$font"
+          icons="$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
+          test -f "$icons"
+          echo "PROSVET_DOC_FONT=$font" >> "$GITHUB_ENV"
+          echo "PROSVET_ICON_FONT=$icons" >> "$GITHUB_ENV"
       - run: flutter test tool/render_docs_test.dart
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
