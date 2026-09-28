@@ -92,8 +92,9 @@ class WsClient {
       for (final line in lines.skip(1)) {
         final colon = line.indexOf(':');
         if (colon <= 0) continue;
-        headers[line.substring(0, colon).trim().toLowerCase()] =
-            line.substring(colon + 1).trim();
+        headers[line.substring(0, colon).trim().toLowerCase()] = line
+            .substring(colon + 1)
+            .trim();
       }
 
       final upgrade = headers['upgrade']?.toLowerCase();
