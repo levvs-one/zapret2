@@ -12,6 +12,8 @@ class MsgSplitter {
     : _dec = AesCtr(relayInit.sublist(8, 40), relayInit.sublist(40, 56))
         ..skip(handshakeLen);
 
+  static const maxPacketBytes = 16 * 1024 * 1024;
+
   final AesCtr _dec;
   final ProtoTag _proto;
   final _cipher = BytesBuilder(copy: false);
@@ -41,6 +43,10 @@ class MsgSplitter {
       offset += len;
     }
     if (offset < cipher.length) {
+      final remaining = cipher.length - offset;
+      if (remaining > maxPacketBytes + 4) {
+        throw StateError('MTProto packet exceeds safety limit');
+      }
       _cipher.add(Uint8List.sublistView(cipher, offset));
       _plain.add(Uint8List.sublistView(plain, offset));
     }
@@ -69,6 +75,9 @@ class MsgSplitter {
           header = 1;
         }
         if (payload <= 0) return 0;
+        if (payload > maxPacketBytes) {
+          throw StateError('MTProto packet exceeds safety limit');
+        }
         return avail < header + payload ? null : header + payload;
       case ProtoTag.intermediate:
       case ProtoTag.paddedIntermediate:
@@ -77,6 +86,9 @@ class MsgSplitter {
             (p[o] | p[o + 1] << 8 | p[o + 2] << 16 | p[o + 3] << 24) &
             0x7fffffff;
         if (payload <= 0) return 0;
+        if (payload > maxPacketBytes) {
+          throw StateError('MTProto packet exceeds safety limit');
+        }
         return avail < 4 + payload ? null : 4 + payload;
     }
   }

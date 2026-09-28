@@ -6,6 +6,7 @@ import 'package:pointycastle/export.dart';
 import 'package:prosvet/src/engine/smartdns/dns_probe.dart';
 import 'package:prosvet/src/engine/telegram/msg_splitter.dart';
 import 'package:prosvet/src/engine/telegram/obfuscated2.dart';
+import 'package:prosvet/src/engine/telegram/ws_client.dart';
 
 Uint8List _bytes(int n, Random r) =>
     Uint8List.fromList(List.generate(n, (_) => r.nextInt(256)));
@@ -109,10 +110,28 @@ void main() {
     expect(s.flush(), isNull);
   });
 
-  test('dns query and answer parsing', () {
+  test('websocket client frames are masked and retain payload length', () {
+    final payload = _bytes(70000, r);
+    final frame = WsClient.encodeFrame(0x2, payload, Random(7));
+    expect(frame[0], 0x82);
+    expect(frame[1] & 0x80, isNonZero);
+    expect(frame[1] & 0x7f, 127);
+
+    final length = ByteData.sublistView(frame, 2, 10).getUint64(0);
+    expect(length, payload.length);
+    final mask = frame.sublist(10, 14);
+    final decoded = Uint8List(payload.length);
+    for (var i = 0; i < payload.length; i++) {
+      decoded[i] = frame[14 + i] ^ mask[i & 3];
+    }
+    expect(decoded, payload);
+  });
+
+  test('dns query and A-answer parsing', () {
     final q = buildDnsQuery('claude.ai', 0x1234);
     expect(q.sublist(0, 2), [0x12, 0x34]);
     expect(q.sublist(12, 19), [6, ...'claude'.codeUnits]);
+
     final answer = Uint8List.fromList([
       0x12,
       0x34,
@@ -121,13 +140,39 @@ void main() {
       0,
       1,
       0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      6,
+      ...'claude'.codeUnits,
       2,
+      ...'ai'.codeUnits,
+      0,
+      0,
+      1,
+      0,
+      1,
+      0xc0,
+      0x0c,
+      0,
+      1,
+      0,
+      1,
       0,
       0,
       0,
+      60,
       0,
+      4,
+      203,
+      0,
+      113,
+      42,
     ]);
-    expect(dnsAnswerCount(answer, 0x1234), 2);
-    expect(dnsAnswerCount(answer, 0x1235), isNull);
+    expect(dnsAnswerCount(answer, 0x1234), 1);
+    expect(dnsAAnswers(answer, 0x1234), {'203.0.113.42'});
+    expect(dnsAAnswers(answer, 0x1235), isNull);
   });
 }

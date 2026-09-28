@@ -29,6 +29,30 @@ Future<bool> _httpOk(HttpClient client, String url) async {
   }
 }
 
+Future<bool> _smartDnsActive(Service s, List<String> dnsServers) async {
+  final domain = s.domains.first;
+
+  // First ask the provider directly, then resolve the same name through the
+  // operating system. NRPT is only considered active when the system resolver
+  // returns at least one address supplied by the configured Smart DNS.
+  for (final server in dnsServers) {
+    final providerAnswers = await queryDnsServer(server, domain);
+    if (providerAnswers == null || providerAnswers.isEmpty) continue;
+    try {
+      final systemAnswers = await InternetAddress.lookup(
+        domain,
+        type: InternetAddressType.IPv4,
+      ).timeout(const Duration(seconds: 5));
+      if (systemAnswers.any((a) => providerAnswers.contains(a.address))) {
+        return true;
+      }
+    } catch (_) {
+      // Try the next provider address.
+    }
+  }
+  return false;
+}
+
 Future<bool> probeService(
   Service s, {
   required List<String> dnsServers,
@@ -48,10 +72,7 @@ Future<bool> probeService(
         client.close(force: true);
       }
     case Mechanism.smartDns:
-      for (final server in dnsServers) {
-        if (await probeDnsServer(server, s.domains.first)) return true;
-      }
-      return false;
+      return _smartDnsActive(s, dnsServers);
     case Mechanism.telegram:
       return telegramRunning();
   }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prosvet/src/catalog/services.dart';
@@ -13,6 +14,8 @@ class FakeBackend implements Backend {
   Object? dpiError;
   final Map<String, List<bool>> answers = {};
   bool telegram = false;
+  Completer<void>? smartDnsGate;
+  Completer<void>? stopDpiGate;
 
   @override
   Stream<String> get faults => faultsCtl.stream;
@@ -34,13 +37,16 @@ class FakeBackend implements Backend {
   }
 
   @override
-  Future<void> stopDpi() async => calls.add('stopDpi');
+  Future<void> stopDpi() async {
+    calls.add('stopDpi');
+    await stopDpiGate?.future;
+  }
 
   @override
-  Future<void> applySmartDns(
-    List<String> domains,
-    List<String> servers,
-  ) async => calls.add('dns ${domains.length}');
+  Future<void> applySmartDns(List<String> domains, List<String> servers) async {
+    calls.add('dns ${domains.length}');
+    await smartDnsGate?.future;
+  }
 
   @override
   Future<void> clearSmartDns() async => calls.add('clearDns');
@@ -55,7 +61,10 @@ class FakeBackend implements Backend {
   }
 
   @override
-  Future<void> stopTelegram() async => telegram = false;
+  Future<void> stopTelegram() async {
+    telegram = false;
+    calls.add('stopTg');
+  }
 
   @override
   String? get telegramLink => telegram ? 'tg://proxy' : null;
@@ -116,6 +125,53 @@ void main() {
     expect(backend.calls, containsAll(['stopDpi', 'clearDns']));
   });
 
+  test('stop during start cannot leave later mechanisms running', () async {
+    await c.init(connect: false);
+    backend.calls.clear();
+    backend.smartDnsGate = Completer<void>();
+
+    final starting = c.start();
+    await pumpEventQueue(times: 10);
+    final dnsDomains = Catalog.all
+        .where((s) => s.mechanism == Mechanism.smartDns)
+        .fold<int>(0, (n, s) => n + s.domains.length);
+    expect(backend.calls, contains('dns $dnsDomains'));
+    expect(c.power, Power.starting);
+
+    final stopping = c.stop();
+    backend.smartDnsGate!.complete();
+    await Future.wait([starting, stopping]);
+
+    expect(c.power, Power.off);
+    expect(backend.telegram, isFalse);
+    expect(backend.calls, isNot(contains('tg')));
+    expect(
+      backend.calls,
+      containsAllInOrder(['dns $dnsDomains', 'stopDpi', 'clearDns', 'stopTg']),
+    );
+  });
+
+  test('a second stop waits for the in-flight shutdown', () async {
+    await c.init(connect: false);
+    await c.start();
+    backend.stopDpiGate = Completer<void>();
+
+    final first = c.stop();
+    await pumpEventQueue();
+    expect(c.power, Power.stopping);
+
+    var secondReturned = false;
+    final second = c.stop().then((_) => secondReturned = true);
+    await pumpEventQueue();
+    expect(secondReturned, isFalse);
+
+    backend.stopDpiGate!.complete();
+    await Future.wait([first, second]);
+
+    expect(secondReturned, isTrue);
+    expect(c.power, Power.off);
+  });
+
   test('engine crash turns the app off', () async {
     await c.init(connect: false);
     await c.start();
@@ -149,5 +205,33 @@ void main() {
     final back = Settings.fromJson(j);
     expect(back.enabled, s.enabled);
     expect(back.telegramSecret, s.telegramSecret);
+  });
+
+  test('first settings load persists the generated Telegram secret', () {
+    final dir = Directory.systemTemp.createTempSync('prosvet-settings-');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = '${dir.path}${Platform.pathSeparator}settings.json';
+
+    final first = Settings.load(file);
+    expect(File(file).existsSync(), isTrue);
+
+    final second = Settings.load(file);
+    expect(second.telegramSecret, first.telegramSecret);
+  });
+
+  test('older settings without a Telegram secret are migrated once', () {
+    final dir = Directory.systemTemp.createTempSync('prosvet-migrate-');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = '${dir.path}${Platform.pathSeparator}settings.json';
+    File(file).writeAsStringSync(
+      '{"enabled":[],"dnsProvider":"xbox-dns","telegramPort":1443,'
+      '"connectOnLaunch":false}',
+    );
+
+    final first = Settings.load(file);
+    final second = Settings.load(file);
+
+    expect(first.telegramSecret, hasLength(32));
+    expect(second.telegramSecret, first.telegramSecret);
   });
 }

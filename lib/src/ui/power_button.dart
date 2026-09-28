@@ -16,6 +16,7 @@ class PowerButton extends StatefulWidget {
 
 class _PowerButtonState extends State<PowerButton> {
   bool _pressed = false;
+  bool _focused = false;
 
   static const _size = 140.0;
   static const _halo = 20.0;
@@ -33,14 +34,32 @@ class _PowerButtonState extends State<PowerButton> {
       button: true,
       toggled: on,
       label: on ? 'Выключить' : 'Включить',
-      child: MouseRegion(
-        cursor: widget.onPressed == null
+      child: FocusableActionDetector(
+        enabled: widget.onPressed != null,
+        mouseCursor: widget.onPressed == null
             ? SystemMouseCursors.basic
             : SystemMouseCursors.click,
+        onShowFocusHighlight: (focused) {
+          if (mounted) setState(() => _focused = focused);
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) {
+              widget.onPressed?.call();
+              return null;
+            },
+          ),
+        },
         child: GestureDetector(
-          onTapDown: (_) => setState(() => _pressed = true),
-          onTapCancel: () => setState(() => _pressed = false),
-          onTapUp: (_) => setState(() => _pressed = false),
+          onTapDown: widget.onPressed == null
+              ? null
+              : (_) => setState(() => _pressed = true),
+          onTapCancel: widget.onPressed == null
+              ? null
+              : () => setState(() => _pressed = false),
+          onTapUp: widget.onPressed == null
+              ? null
+              : (_) => setState(() => _pressed = false),
           onTap: widget.onPressed,
           child: AnimatedScale(
             scale: _pressed ? 0.95 : 1,
@@ -80,7 +99,12 @@ class _PowerButtonState extends State<PowerButton> {
                       shape: BoxShape.circle,
                       color: on ? c.primary : c.surfaceContainerLowest,
                       border: Border.all(
-                        color: on ? c.primary : c.outlineVariant,
+                        color: _focused
+                            ? c.primary
+                            : on
+                            ? c.primary
+                            : c.outlineVariant,
+                        width: _focused ? 3 : 1,
                       ),
                     ),
                     child: TweenAnimationBuilder<Color?>(
