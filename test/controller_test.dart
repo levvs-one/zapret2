@@ -172,6 +172,18 @@ void main() {
     expect(c.power, Power.off);
   });
 
+  test('late backend fault while off is ignored', () async {
+    await c.init(connect: false);
+    backend.calls.clear();
+
+    backend.faultsCtl.add('late exit');
+    await pumpEventQueue();
+
+    expect(c.power, Power.off);
+    expect(c.error, isNull);
+    expect(backend.calls, isEmpty);
+  });
+
   test('engine crash turns the app off', () async {
     await c.init(connect: false);
     await c.start();
