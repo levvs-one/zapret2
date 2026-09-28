@@ -4,12 +4,15 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/src/app.dart';
 import 'package:prosvet/src/catalog/services.dart';
 import 'package:prosvet/src/core/backend.dart';
 import 'package:prosvet/src/core/controller.dart';
 import 'package:prosvet/src/core/settings.dart';
+import 'package:prosvet/src/ui/home_page.dart';
+import 'package:prosvet/src/ui/settings_page.dart';
+import 'package:prosvet/src/ui/theme.dart';
 
 class _SnapshotBackend implements Backend {
   bool _telegram = false;
@@ -67,6 +70,13 @@ class _SnapshotBackend implements Backend {
   Future<bool> probe(Service service, List<String> dnsServers) async => true;
 }
 
+Future<void> _loadFont(String family, String path) async {
+  final bytes = await File(path).readAsBytes();
+  final data = ByteData.sublistView(Uint8List.fromList(bytes));
+  final loader = FontLoader(family)..addFont(Future.value(data));
+  await loader.load();
+}
+
 Future<void> _capture(
   WidgetTester tester,
   GlobalKey boundaryKey,
@@ -85,12 +95,30 @@ Future<void> _capture(
   });
 }
 
+Widget _snapshotApp(Widget home) {
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: AppTheme.light(fontFamily: 'ProsvetDocs'),
+    home: home,
+  );
+}
+
 void main() {
   testWidgets('render README screenshots from the real app', (tester) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(440, 780);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
+
+    final textFont = Platform.environment['PROSVET_DOC_FONT'];
+    final iconFont = Platform.environment['PROSVET_ICON_FONT'];
+    if (textFont == null || iconFont == null) {
+      throw StateError('Snapshot font paths were not provided');
+    }
+    await tester.runAsync(() async {
+      await _loadFont('ProsvetDocs', textFont);
+      await _loadFont('MaterialIcons', iconFont);
+    });
 
     final controller = Controller(
       backend: _SnapshotBackend(),
@@ -102,28 +130,35 @@ void main() {
     await controller.init(connect: false);
     addTearDown(controller.dispose);
 
+    SettingsPage settings() => SettingsPage(
+      controller: controller,
+      autostart: null,
+      openLog: () {},
+      version: '0.1.0',
+    );
+
     final boundaryKey = GlobalKey();
     await tester.pumpWidget(
       RepaintBoundary(
         key: boundaryKey,
-        child: ProsvetApp(
-          controller: controller,
-          autostart: null,
-          logPath: '',
-          version: '0.1.0',
-          desktopShell: false,
+        child: _snapshotApp(
+          HomePage(controller: controller, settingsPage: settings),
         ),
       ),
     );
     await tester.pumpAndSettle();
-
     await _capture(tester, boundaryKey, 'docs/off.png');
 
     await controller.start();
     await tester.pumpAndSettle();
     await _capture(tester, boundaryKey, 'docs/on.png');
 
-    await tester.tap(find.byTooltip('Настройки'));
+    await tester.pumpWidget(
+      RepaintBoundary(
+        key: boundaryKey,
+        child: _snapshotApp(settings()),
+      ),
+    );
     await tester.pumpAndSettle();
     await _capture(tester, boundaryKey, 'docs/settings.png');
   });
