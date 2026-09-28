@@ -62,7 +62,7 @@ class Settings {
           : d.enabled,
       dnsProvider: j['dnsProvider'] as String? ?? d.dnsProvider,
       telegramPort: j['telegramPort'] as int? ?? d.telegramPort,
-      telegramSecret: _validSecret(secret) ? secret as String : d.telegramSecret,
+      telegramSecret: _validSecret(secret)\n          ? secret as String\n          : d.telegramSecret,
       connectOnLaunch: j['connectOnLaunch'] as bool? ?? d.connectOnLaunch,
     );
   }
