@@ -26,10 +26,6 @@ class MsgSplitter {
     _cipher.add(chunk);
     _plain.add(_dec.process(chunk));
 
-    if (_cipher.length > maxPacketBytes + 4) {
-      throw StateError('MTProto packet exceeds safety limit');
-    }
-
     final cipher = _cipher.takeBytes();
     final plain = _plain.takeBytes();
     final parts = <Uint8List>[];
@@ -47,6 +43,10 @@ class MsgSplitter {
       offset += len;
     }
     if (offset < cipher.length) {
+      final remaining = cipher.length - offset;
+      if (remaining > maxPacketBytes + 4) {
+        throw StateError('MTProto packet exceeds safety limit');
+      }
       _cipher.add(Uint8List.sublistView(cipher, offset));
       _plain.add(Uint8List.sublistView(plain, offset));
     }
