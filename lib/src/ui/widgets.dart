@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
 
-/// Inset grouped section, as in iOS Settings and Android 16 settings.
+/// Inset grouped list, as in iOS Settings and Pixel settings.
 class Section extends StatelessWidget {
-  const Section({
-    super.key,
-    required this.title,
-    required this.children,
-    this.footer,
-  });
+  const Section({super.key, this.title, required this.children, this.footer});
 
-  final String title;
+  final String? title;
   final String? footer;
   final List<Widget> children;
 
@@ -19,25 +14,26 @@ class Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-          child: Text(
-            title,
-            style: t.textTheme.labelLarge?.copyWith(
-              color: t.colorScheme.primary,
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+            child: Text(
+              title!,
+              style: t.textTheme.titleSmall?.copyWith(
+                color: t.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
-        ),
         Material(
-          color: t.colorScheme.surfaceContainer,
+          color: t.colorScheme.surfaceContainerLowest,
           clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
           child: Column(
             children: [
               for (var i = 0; i < children.length; i++) ...[
-                if (i > 0) const Divider(indent: 68),
+                if (i > 0) const Divider(indent: 20, endIndent: 20),
                 children[i],
               ],
             ],
@@ -45,42 +41,16 @@ class Section extends StatelessWidget {
         ),
         if (footer != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Text(
               footer!,
               style: t.textTheme.bodySmall?.copyWith(
                 color: t.colorScheme.onSurfaceVariant,
+                height: 1.4,
               ),
             ),
           ),
       ],
-    );
-  }
-}
-
-/// Rounded tonal square with an icon, the leading element of every row.
-class TileIcon extends StatelessWidget {
-  const TileIcon(this.icon, {super.key, this.active = true});
-
-  final IconData icon;
-  final bool active;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        color: active ? c.secondaryContainer : c.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Icon(
-        icon,
-        size: 20,
-        color: active ? c.onSecondaryContainer : c.onSurfaceVariant,
-      ),
     );
   }
 }

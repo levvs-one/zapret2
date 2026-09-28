@@ -7,17 +7,6 @@ import 'settings_page.dart';
 import 'theme.dart';
 import 'widgets.dart';
 
-const _icons = <String, IconData>{
-  'youtube': Icons.smart_display_outlined,
-  'discord': Icons.headset_mic_outlined,
-  'telegram': Icons.send_outlined,
-  'gemini': Icons.auto_awesome_outlined,
-  'chatgpt': Icons.chat_bubble_outline_rounded,
-  'claude': Icons.edit_note_rounded,
-  'copilot': Icons.code_rounded,
-  'spotify': Icons.music_note_outlined,
-};
-
 class HomePage extends StatelessWidget {
   const HomePage({
     super.key,
@@ -36,8 +25,6 @@ class HomePage extends StatelessWidget {
         final c = controller;
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            scrolledUnderElevation: 0,
             title: const Text('Просвет'),
             actions: [
               IconButton(
@@ -54,43 +41,41 @@ class HomePage extends StatelessWidget {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 480),
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                 children: [
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Center(
                     child: PowerButton(
                       power: c.power,
                       onPressed: c.unsupported == null ? c.toggle : null,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   _Status(controller: c),
                   if (c.unsupported != null || c.error != null) ...[
                     const SizedBox(height: 20),
                     _Notice(text: c.unsupported ?? c.error!),
                   ],
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 36),
                   Section(
                     title: 'Без замедления',
-                    footer:
-                        'Трафик идёт напрямую, Просвет только мешает провайдеру '
-                        'его распознать.',
                     children: [
-                      for (final s in [
-                        Catalog.youtube,
-                        Catalog.discord,
-                        Catalog.telegram,
-                      ])
+                      for (final s in [Catalog.youtube, Catalog.discord])
                         _ServiceTile(service: s, controller: c),
+                      _ServiceTile(service: Catalog.telegram, controller: c),
+                      if (c.power == Power.on &&
+                          c.isEnabled(Catalog.telegram) &&
+                          c.telegramLink != null)
+                        _TelegramConnect(onTap: c.openTelegram),
                     ],
                   ),
                   const SizedBox(height: 28),
                   Section(
-                    title: 'Недоступные из России',
+                    title: 'Закрытые для России',
                     footer:
-                        'Запросы к этим сервисам разрешаются через ${c.dnsProvider.title}: '
-                        'они идут через зарубежный шлюз, остальной интернет не меняется. '
-                        'Нужен аккаунт с регионом, где сервис работает.',
+                        'Эти сервисы открываются через ${c.dnsProvider.title}, '
+                        'остальной интернет идёт как обычно. Аккаунт должен '
+                        'быть зарегистрирован в стране, где сервис работает.',
                     children: [
                       for (final s in Catalog.all.where(
                         (s) => s.mechanism == Mechanism.smartDns,
@@ -118,24 +103,38 @@ class _Status extends StatelessWidget {
     final t = Theme.of(context);
     final c = controller;
     final checking = c.health.values.contains(Health.checking);
-    final failing = c.health.values.contains(Health.failing);
+    final failing = c.health.values.where((h) => h == Health.failing).length;
     final (title, subtitle) = switch (c.power) {
       Power.off => ('Выключено', 'Нажмите, чтобы включить'),
-      Power.starting => ('Включаю', 'Запускаю движок'),
-      Power.stopping => ('Выключаю', 'Возвращаю настройки сети'),
+      Power.starting => ('Включаю', 'Это займёт пару секунд'),
+      Power.stopping => ('Выключаю', 'Возвращаю сеть как было'),
       Power.on when checking => ('Включено', 'Подбираю способ для вашей сети'),
-      Power.on when failing => ('Включено', 'Часть сервисов пока недоступна'),
-      Power.on => ('Всё работает', 'Можно свернуть окно'),
+      Power.on when failing > 0 => (
+        'Включено',
+        failing == 1
+            ? 'Один сервис не отвечает'
+            : 'Не отвечает сервисов: $failing',
+      ),
+      Power.on => (
+        'Всё работает',
+        'Окно можно закрыть, Просвет останется в трее',
+      ),
     };
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       child: Column(
         key: ValueKey('$title$subtitle'),
         children: [
-          Text(title, style: t.textTheme.headlineSmall),
-          const SizedBox(height: 4),
+          Text(
+            title,
+            style: t.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
           Text(
             subtitle,
+            textAlign: TextAlign.center,
             style: t.textTheme.bodyMedium?.copyWith(
               color: t.colorScheme.onSurfaceVariant,
             ),
@@ -155,24 +154,20 @@ class _Notice extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       decoration: BoxDecoration(
         color: c.errorContainer,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            color: c.onErrorContainer,
-            size: 20,
-          ),
+          Icon(Icons.error_outline_rounded, color: c.onErrorContainer),
           const SizedBox(width: 12),
           Expanded(
             child: SelectableText(
               text,
-              style: TextStyle(color: c.onErrorContainer),
+              style: TextStyle(color: c.onErrorContainer, height: 1.4),
               maxLines: 8,
             ),
           ),
@@ -190,78 +185,56 @@ class _ServiceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final t = Theme.of(context);
     final c = controller;
     final on = c.isEnabled(service);
-    final health = c.health[service.id]!;
-    final showConnect =
-        service.mechanism == Mechanism.telegram &&
-        c.power == Power.on &&
-        on &&
-        c.telegramLink != null;
-    return Column(
-      children: [
-        ListTile(
-          leading: TileIcon(_icons[service.id]!, active: on),
-          title: Text(service.title),
-          subtitle: Text(service.caption),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _HealthMark(health: health),
-              const SizedBox(width: 12),
-              Switch(value: on, onChanged: (v) => c.setEnabled(service, v)),
-            ],
-          ),
-          onTap: () => c.setEnabled(service, !on),
+    final (status, color) = switch (c.health[service.id]!) {
+      Health.idle => (service.caption, t.colorScheme.onSurfaceVariant),
+      Health.checking => ('Проверяю', t.colorScheme.onSurfaceVariant),
+      Health.ok => ('Работает', t.colorScheme.positive),
+      Health.failing => ('Не отвечает', t.colorScheme.error),
+    };
+    return ListTile(
+      title: Text(service.title),
+      subtitle: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200),
+        layoutBuilder: (current, previous) => Stack(
+          alignment: Alignment.centerLeft,
+          children: [...previous, ?current],
         ),
-        if (showConnect)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(68, 0, 16, 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.tonal(
-                onPressed: c.openTelegram,
-                child: const Text('Подключить Telegram Desktop'),
-              ),
-            ),
-          ),
-      ],
+        child: Text(
+          status,
+          key: ValueKey(status),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(color: color),
+        ),
+      ),
+      trailing: Switch(value: on, onChanged: (v) => c.setEnabled(service, v)),
+      onTap: () => c.setEnabled(service, !on),
     );
   }
 }
 
-class _HealthMark extends StatelessWidget {
-  const _HealthMark({required this.health});
+class _TelegramConnect extends StatelessWidget {
+  const _TelegramConnect({required this.onTap});
 
-  final Health health;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final c = Theme.of(context).colorScheme;
-    final Widget child = switch (health) {
-      Health.idle => const SizedBox.square(
-        key: ValueKey('idle'),
-        dimension: 16,
+    return ListTile(
+      title: Text(
+        'Подключить Telegram Desktop',
+        style: TextStyle(color: c.primary),
       ),
-      Health.checking => SizedBox.square(
-        key: const ValueKey('checking'),
-        dimension: 16,
-        child: CircularProgressIndicator(strokeWidth: 2, color: c.primary),
+      subtitle: const Text('Один раз: Telegram сам добавит прокси'),
+      trailing: Padding(
+        padding: const EdgeInsets.only(right: 12),
+        child: Icon(Icons.open_in_new_rounded, size: 20, color: c.primary),
       ),
-      Health.ok => Tooltip(
-        key: const ValueKey('ok'),
-        message: 'Работает',
-        child: Icon(Icons.check_circle_rounded, size: 18, color: c.positive),
-      ),
-      Health.failing => Tooltip(
-        key: const ValueKey('failing'),
-        message: 'Не отвечает',
-        child: Icon(Icons.error_rounded, size: 18, color: c.error),
-      ),
-    };
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
-      child: child,
+      onTap: onTap,
     );
   }
 }

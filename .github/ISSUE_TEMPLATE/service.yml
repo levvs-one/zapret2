@@ -1,0 +1,27 @@
+name: Добавить сервис
+description: Сайт или приложение, которое не работает в России
+labels: [service]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Сервис
+      placeholder: Notion
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Как именно не работает
+      options:
+        - Тормозит или не открывается (режет провайдер)
+        - Пишет, что недоступен в вашей стране
+        - Не знаю
+    validations:
+      required: true
+  - type: textarea
+    id: domains
+    attributes:
+      label: Домены
+      description: Если знаете. Посмотреть можно в DevTools браузера, вкладка Network.
+      placeholder: notion.so, notion.site

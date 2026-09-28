@@ -54,11 +54,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return ListenableBuilder(
       listenable: c,
       builder: (context, _) => Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          scrolledUnderElevation: 0,
-          title: const Text('Настройки'),
-        ),
+        appBar: AppBar(title: const Text('Настройки')),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
@@ -69,16 +65,14 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: 'Запуск',
                   children: [
                     SwitchListTile(
-                      secondary: const TileIcon(Icons.login_rounded),
                       title: const Text('Запускать вместе с Windows'),
-                      subtitle: const Text('Без запроса прав при каждом входе'),
+                      subtitle: const Text('И без запроса прав при входе'),
                       value: _autostart ?? false,
                       onChanged: widget.autostart == null || _autostart == null
                           ? null
                           : _setAutostart,
                     ),
                     SwitchListTile(
-                      secondary: const TileIcon(Icons.bolt_rounded),
                       title: const Text('Включать сразу'),
                       subtitle: const Text('Не ждать нажатия кнопки'),
                       value: c.settings.connectOnLaunch,
@@ -91,13 +85,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: 'Сеть',
                   children: [
                     ListTile(
-                      leading: const TileIcon(Icons.dns_outlined),
                       title: Text(c.dnsProvider.title),
                       subtitle: Text(c.dnsProvider.servers.join(', ')),
                     ),
                     ListTile(
-                      leading: const TileIcon(Icons.refresh_rounded),
                       title: const Text('Проверить сервисы'),
+                      subtitle: const Text('И подобрать способ заново'),
                       enabled: c.power == Power.on,
                       onTap: c.recheck,
                     ),
@@ -108,12 +101,10 @@ class _SettingsPageState extends State<SettingsPage> {
                   title: 'О программе',
                   children: [
                     ListTile(
-                      leading: const TileIcon(Icons.info_outline_rounded),
                       title: const Text('Просвет'),
                       subtitle: Text('Версия ${widget.version}'),
                     ),
                     ListTile(
-                      leading: const TileIcon(Icons.description_outlined),
                       title: const Text('Журнал'),
                       subtitle: const Text(
                         'Пригодится, если что-то не работает',
@@ -121,7 +112,6 @@ class _SettingsPageState extends State<SettingsPage> {
                       onTap: widget.openLog,
                     ),
                     ListTile(
-                      leading: const TileIcon(Icons.gavel_rounded),
                       title: const Text('Лицензии'),
                       subtitle: const Text('zapret2, tg-ws-proxy и библиотеки'),
                       onTap: () => showLicensePage(

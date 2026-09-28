@@ -1,11 +1,17 @@
 <div align="center">
 
-<img src="assets/icon.png" width="96" alt="">
+<img src="assets/icon.png" width="88" alt="">
 
 # Просвет
 
-**YouTube, Discord, Telegram, Gemini, ChatGPT и Claude без VPN.**
+**YouTube, Discord, Telegram, Gemini, ChatGPT и Claude без VPN.**<br>
 Одна кнопка для Windows 10 и 11.
+
+[![Скачать](https://img.shields.io/github/v/release/levvs-one/zapret2?label=%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C&color=0B57D0)](https://github.com/levvs-one/zapret2/releases/latest)
+[![CI](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml/badge.svg)](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml)
+[![MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+
+<img src="docs/off.png" width="260" alt="Выключено">&nbsp;&nbsp;<img src="docs/on.png" width="260" alt="Включено">&nbsp;&nbsp;<img src="docs/settings.png" width="260" alt="Настройки">
 
 </div>
 
@@ -30,7 +36,7 @@
 
 ## Установка
 
-1. Скачайте `Prosvet-windows-x64.zip` из [Releases](../../releases) или из последней сборки в [Actions](../../actions).
+1. Скачайте `Prosvet-…-windows-x64.zip` со страницы [последнего релиза](https://github.com/levvs-one/zapret2/releases/latest).
 2. Распакуйте архив в любую папку и запустите `prosvet.exe`.
 3. Разрешите запуск от имени администратора. Это нужно драйверу WinDivert, который работает с сетевыми пакетами.
 4. Нажмите большую кнопку.
@@ -104,7 +110,7 @@ lib/src/
 engine/               Lua-расширение и списки доменов для zapret2
 ```
 
-Хотите добавить сервис или способ обхода? Домены лежат в `lib/src/catalog/services.dart` и `engine/lists/`, способы обхода в `lib/src/engine/zapret/strategies.dart`. Pull request'ы приветствуются.
+Хотите добавить сервис или способ обхода: [CONTRIBUTING.md](CONTRIBUTING.md). История версий: [CHANGELOG.md](CHANGELOG.md).
 
 ## Благодарности
 

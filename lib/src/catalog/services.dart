@@ -34,28 +34,28 @@ abstract final class Catalog {
   static const youtube = Service(
     id: 'youtube',
     title: 'YouTube',
-    caption: 'Видео без замедления',
+    caption: 'Видео в полном качестве',
     mechanism: Mechanism.dpi,
   );
 
   static const discord = Service(
     id: 'discord',
     title: 'Discord',
-    caption: 'Чаты, голос и демонстрация экрана',
+    caption: 'Голос и демонстрация экрана',
     mechanism: Mechanism.dpi,
   );
 
   static const telegram = Service(
     id: 'telegram',
     title: 'Telegram',
-    caption: 'Фото, видео и файлы в Telegram Desktop',
+    caption: 'Медиа и файлы в Telegram Desktop',
     mechanism: Mechanism.telegram,
   );
 
   static const gemini = Service(
     id: 'gemini',
     title: 'Gemini и AI Studio',
-    caption: 'Google AI, NotebookLM, Antigravity',
+    caption: 'NotebookLM, Antigravity',
     mechanism: Mechanism.smartDns,
     domains: [
       'gemini.google.com',
@@ -98,7 +98,7 @@ abstract final class Catalog {
   static const copilot = Service(
     id: 'copilot',
     title: 'Copilot',
-    caption: 'Microsoft Copilot и GitHub Copilot',
+    caption: 'Microsoft и GitHub',
     mechanism: Mechanism.smartDns,
     domains: [
       'copilot.microsoft.com',

@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: ./tools/fetch-engine.ps1
+        shell: pwsh
+      - run: flutter build windows --release
+      - name: Package
+        shell: pwsh
+        run: |
+          $bundle = "build/windows/x64/runner/Release"
+          if (-not (Test-Path "$bundle/engine/winws2.exe")) { throw "engine is missing in the bundle" }
+          Copy-Item LICENSE, THIRD_PARTY_NOTICES.md $bundle
+          $name = "Prosvet-$($env:GITHUB_REF_NAME)-windows-x64.zip"
+          Compress-Archive -Path "$bundle/*" -DestinationPath $name
+          (Get-FileHash $name -Algorithm SHA256).Hash.ToLower() + "  $name" | Out-File -Encoding ascii "$name.sha256"
+      - name: Release notes
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          $text = Get-Content CHANGELOG.md -Raw
+          $m = [regex]::Match($text, "(?ms)^## $([regex]::Escape($version))\s*\r?\n(.*?)(?=^## |\z)")
+          if (-not $m.Success) { throw "CHANGELOG.md has no section for $version" }
+          $m.Groups[1].Value.Trim() | Out-File -Encoding utf8 notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Просвет ${{ github.ref_name }}
+          body_path: notes.md
+          files: |
+            Prosvet-*-windows-x64.zip
+            Prosvet-*-windows-x64.zip.sha256

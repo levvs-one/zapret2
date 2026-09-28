@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Material 3, calm and system-like: one seed color, tonal surfaces, no
-/// decorative gradients or shadows.
+/// Material 3 with a fidelity scheme so the accent stays Google blue instead
+/// of drifting to lavender, and grouped surfaces like system settings.
 abstract final class AppTheme {
   static const seed = Color(0xFF0B57D0);
 
@@ -9,28 +9,41 @@ abstract final class AppTheme {
   static ThemeData dark() => _build(Brightness.dark);
 
   static ThemeData _build(Brightness b) {
-    final scheme = ColorScheme.fromSeed(seedColor: seed, brightness: b);
-    final base = ThemeData(
-      colorScheme: scheme,
-      useMaterial3: true,
-      visualDensity: VisualDensity.standard,
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: b,
+      dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
+    final base = ThemeData(colorScheme: scheme, useMaterial3: true);
+    final text = Typography.englishLike2021
+        .merge(base.textTheme)
+        .apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
     return base.copyWith(
-      scaffoldBackgroundColor: scheme.surfaceContainerLowest,
-      textTheme: base.textTheme.apply(
-        bodyColor: scheme.onSurface,
-        displayColor: scheme.onSurface,
+      scaffoldBackgroundColor: scheme.surfaceContainerLow,
+      textTheme: text,
+      appBarTheme: AppBarTheme(
+        backgroundColor: scheme.surfaceContainerLow,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        titleTextStyle: text.titleLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        minVerticalPadding: 10,
-        iconColor: scheme.onSurfaceVariant,
-        subtitleTextStyle: base.textTheme.bodySmall?.copyWith(
+        contentPadding: const EdgeInsets.only(left: 20, right: 12),
+        minVerticalPadding: 12,
+        titleTextStyle: text.bodyLarge,
+        subtitleTextStyle: text.bodyMedium?.copyWith(
           color: scheme.onSurfaceVariant,
         ),
       ),
+      switchTheme: SwitchThemeData(
+        thumbIcon: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected)
+              ? const Icon(Icons.check_rounded)
+              : null,
+        ),
+      ),
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.6),
+        color: scheme.outlineVariant.withValues(alpha: 0.5),
         space: 1,
         thickness: 1,
       ),
