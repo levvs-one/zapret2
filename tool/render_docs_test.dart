@@ -68,18 +68,21 @@ class _SnapshotBackend implements Backend {
 }
 
 Future<void> _capture(
+  WidgetTester tester,
   GlobalKey boundaryKey,
   String path, {
   double pixelRatio = 2,
 }) async {
-  final boundary =
-      boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
-  final image = await boundary.toImage(pixelRatio: pixelRatio);
-  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (bytes == null) throw StateError('Could not encode UI snapshot');
-  File(path).writeAsBytesSync(
-    Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes),
-  );
+  await tester.runAsync(() async {
+    final boundary =
+        boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+    final image = await boundary.toImage(pixelRatio: pixelRatio);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    if (bytes == null) throw StateError('Could not encode UI snapshot');
+    File(path).writeAsBytesSync(
+      Uint8List.view(bytes.buffer, bytes.offsetInBytes, bytes.lengthInBytes),
+    );
+  });
 }
 
 void main() {
@@ -114,14 +117,14 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _capture(boundaryKey, 'docs/off.png');
+    await _capture(tester, boundaryKey, 'docs/off.png');
 
     await controller.start();
     await tester.pumpAndSettle();
-    await _capture(boundaryKey, 'docs/on.png');
+    await _capture(tester, boundaryKey, 'docs/on.png');
 
     await tester.tap(find.byTooltip('Настройки'));
     await tester.pumpAndSettle();
-    await _capture(boundaryKey, 'docs/settings.png');
+    await _capture(tester, boundaryKey, 'docs/settings.png');
   });
 }
