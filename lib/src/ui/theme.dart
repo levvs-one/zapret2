@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 abstract final class AppTheme {
   static const seed = Color(0xFF0A84FF);
 
-  static ThemeData light() => _build(Brightness.light);
-  static ThemeData dark() => _build(Brightness.dark);
+  static ThemeData light({String? fontFamily}) =>
+      _build(Brightness.light, fontFamily: fontFamily);
+  static ThemeData dark({String? fontFamily}) =>
+      _build(Brightness.dark, fontFamily: fontFamily);
 
-  static ThemeData _build(Brightness brightness) {
+  static ThemeData _build(Brightness brightness, {String? fontFamily}) {
     final scheme = ColorScheme.fromSeed(
       seedColor: seed,
       brightness: brightness,
@@ -14,6 +16,7 @@ abstract final class AppTheme {
     );
     final base = ThemeData(colorScheme: scheme, useMaterial3: true);
     final text = base.textTheme.apply(
+      fontFamily: fontFamily,
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
     );
