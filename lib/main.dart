@@ -66,7 +66,7 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  await controller.init(connect: background || settings.connectOnLaunch);
+  await controller.init(connect: settings.connectOnLaunch);
 }
 
 void _registerLicenses() {
