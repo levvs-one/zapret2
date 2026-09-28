@@ -246,4 +246,17 @@ void main() {
     expect(first.telegramSecret, hasLength(32));
     expect(second.telegramSecret, first.telegramSecret);
   });
+
+  test('invalid existing settings are preserved instead of overwritten', () {
+    final dir = Directory.systemTemp.createTempSync('prosvet-corrupt-');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = '${dir.path}${Platform.pathSeparator}settings.json';
+    const original = '{"enabled":"definitely-not-a-list"}';
+    File(file).writeAsStringSync(original);
+
+    final loaded = Settings.load(file);
+
+    expect(loaded.telegramSecret, hasLength(32));
+    expect(File(file).readAsStringSync(), original);
+  });
 }
