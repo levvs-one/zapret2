@@ -18,6 +18,8 @@ import 'src/platform/shell.dart';
 
 const version = '0.1.0';
 
+bool shouldConnectAtStartup(Settings settings) => settings.connectOnLaunch;
+
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
   _registerLicenses();
@@ -66,7 +68,7 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  await controller.init(connect: settings.connectOnLaunch);
+  await controller.init(connect: shouldConnectAtStartup(settings));
 }
 
 void _registerLicenses() {
