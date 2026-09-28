@@ -13,9 +13,9 @@ body:
   - type: input
     id: isp
     attributes:
-      label: Провайдер и город
-      description: Способы обхода отличаются от провайдера к провайдеру, это самое полезное.
-      placeholder: Ростелеком, Казань / МТС мобильный, Москва
+      label: Провайдер и тип подключения
+      description: Домашний интернет или мобильная сеть — этого достаточно. Город указывать не нужно.
+      placeholder: Ростелеком, домашний / МТС, мобильный
     validations:
       required: true
   - type: textarea
@@ -34,5 +34,5 @@ body:
     id: log
     attributes:
       label: Журнал
-      description: Настройки → Журнал. Вставьте последние строки.
+      description: Настройки → О программе → Журнал. Вставьте последние строки.
       render: text
