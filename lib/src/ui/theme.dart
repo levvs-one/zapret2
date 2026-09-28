@@ -1,49 +1,54 @@
 import 'package:flutter/material.dart';
 
-/// Material 3 with a fidelity scheme so the accent stays Google blue instead
-/// of drifting to lavender, and grouped surfaces like system settings.
 abstract final class AppTheme {
-  static const seed = Color(0xFF0B57D0);
+  static const seed = Color(0xFF0A84FF);
 
   static ThemeData light() => _build(Brightness.light);
   static ThemeData dark() => _build(Brightness.dark);
 
-  static ThemeData _build(Brightness b) {
+  static ThemeData _build(Brightness brightness) {
     final scheme = ColorScheme.fromSeed(
       seedColor: seed,
-      brightness: b,
+      brightness: brightness,
       dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
     );
     final base = ThemeData(colorScheme: scheme, useMaterial3: true);
-    final text = Typography.englishLike2021
-        .merge(base.textTheme)
-        .apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
+    final text = base.textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
+
     return base.copyWith(
-      scaffoldBackgroundColor: scheme.surfaceContainerLow,
+      scaffoldBackgroundColor: scheme.surface,
       textTheme: text,
       appBarTheme: AppBarTheme(
-        backgroundColor: scheme.surfaceContainerLow,
+        backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
         scrolledUnderElevation: 0,
-        titleTextStyle: text.titleLarge?.copyWith(fontWeight: FontWeight.w500),
+        centerTitle: false,
+        titleTextStyle: text.titleLarge?.copyWith(fontWeight: FontWeight.w600),
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.only(left: 20, right: 12),
-        minVerticalPadding: 12,
-        titleTextStyle: text.bodyLarge,
-        subtitleTextStyle: text.bodyMedium?.copyWith(
-          color: scheme.onSurfaceVariant,
-        ),
+        contentPadding: const EdgeInsets.only(left: 20, right: 14),
+        minTileHeight: 58,
+        minVerticalPadding: 10,
+        iconColor: scheme.onSurfaceVariant,
+        titleTextStyle: text.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
       ),
       switchTheme: SwitchThemeData(
-        thumbIcon: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? const Icon(Icons.check_rounded)
-              : null,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        thumbIcon: const WidgetStatePropertyAll(null),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(0, 50),
+          shape: const StadiumBorder(),
+          textStyle: text.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.5),
+        color: scheme.outlineVariant.withValues(alpha: 0.45),
         space: 1,
         thickness: 1,
       ),
@@ -57,9 +62,8 @@ abstract final class AppTheme {
   }
 }
 
-/// Status colors that read well in both themes.
 extension StatusColors on ColorScheme {
   Color get positive => brightness == Brightness.light
-      ? const Color(0xFF146C2E)
-      : const Color(0xFF6DD58C);
+      ? const Color(0xFF188038)
+      : const Color(0xFF67D98B);
 }
