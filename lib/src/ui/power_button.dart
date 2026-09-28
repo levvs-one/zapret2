@@ -100,7 +100,9 @@ class _PowerButtonState extends State<PowerButton> {
                       color: on ? c.primary : c.surfaceContainerLowest,
                       border: Border.all(
                         color: _focused
-                            ? c.primary
+                            ? on
+                                  ? c.onPrimary
+                                  : c.primary
                             : on
                             ? c.primary
                             : c.outlineVariant,
