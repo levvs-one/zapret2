@@ -58,18 +58,17 @@ void main() {
 
   test('autostart surfaces Task Scheduler errors', () async {
     final shell = _FakeShell();
-    shell.results['schtasks.exe /Delete /TN Prosvet /F'] =
-        const ShellResult(1, '', 'access denied');
+    shell.results['schtasks.exe /Delete /TN Prosvet /F'] = const ShellResult(
+      1,
+      '',
+      'access denied',
+    );
     final autostart = Autostart(shell, r'C:\Prosvet\prosvet.exe');
 
     expect(
       () => autostart.setEnabled(false),
       throwsA(
-        isA<StateError>().having(
-          (e) => e.message,
-          'message',
-          'access denied',
-        ),
+        isA<StateError>().having((e) => e.message, 'message', 'access denied'),
       ),
     );
   });
