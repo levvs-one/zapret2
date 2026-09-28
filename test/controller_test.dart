@@ -251,7 +251,7 @@ void main() {
     final dir = Directory.systemTemp.createTempSync('prosvet-corrupt-');
     addTearDown(() => dir.deleteSync(recursive: true));
     final file = '${dir.path}${Platform.pathSeparator}settings.json';
-    const original = '{"enabled":"definitely-not-a-list"}';
+    const original = '{"dnsProvider":123}';
     File(file).writeAsStringSync(original);
 
     final loaded = Settings.load(file);
