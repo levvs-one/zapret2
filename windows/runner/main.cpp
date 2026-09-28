@@ -60,7 +60,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   // Intentionally not closed: Windows closes process handles on exit, which
   // triggers JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE after an abnormal termination.
-  [[maybe_unused]] HANDLE process_job = AttachKillOnCloseJob();
+  HANDLE process_job = AttachKillOnCloseJob();
+  (void)process_job;
 
   // Attach to console when present (e.g., 'flutter run') or create a
   // new console when running with a debugger.
