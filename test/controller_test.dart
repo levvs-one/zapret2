@@ -193,4 +193,20 @@ void main() {
     final second = Settings.load(file);
     expect(second.telegramSecret, first.telegramSecret);
   });
+
+  test('older settings without a Telegram secret are migrated once', () {
+    final dir = Directory.systemTemp.createTempSync('prosvet-migrate-');
+    addTearDown(() => dir.deleteSync(recursive: true));
+    final file = '${dir.path}${Platform.pathSeparator}settings.json';
+    File(file).writeAsStringSync(
+      '{"enabled":[],"dnsProvider":"xbox-dns","telegramPort":1443,'
+      '"connectOnLaunch":false}',
+    );
+
+    final first = Settings.load(file);
+    final second = Settings.load(file);
+
+    expect(first.telegramSecret, hasLength(32));
+    expect(second.telegramSecret, first.telegramSecret);
+  });
 }
