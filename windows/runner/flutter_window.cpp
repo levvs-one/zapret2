@@ -27,13 +27,9 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
-  flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    this->Show();
-  });
-
-  // Flutter can complete the first frame before the "show window" callback is
-  // registered. The following call ensures a frame is pending to ensure the
-  // window is shown. It is a no-op if the first frame hasn't completed yet.
+  // Window visibility is controlled from Dart via window_manager. This keeps
+  // --background launches hidden while normal launches are shown explicitly by
+  // waitUntilReadyToShow in main.dart.
   flutter_controller_->ForceRedraw();
 
   return true;
