@@ -7,7 +7,7 @@
 
 namespace {
 
-constexpr wchar_t kSingleInstanceMutex[] = L"Local\\Prosvet.SingleInstance";
+constexpr wchar_t kSingleInstanceMutex[] = L"Global\\Prosvet.SingleInstance";
 constexpr wchar_t kWindowProperty[] = L"Prosvet.SingleInstance.Window";
 
 BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
@@ -29,6 +29,11 @@ void BringExistingWindowToFront() {
     }
   }
   if (existing == nullptr) {
+    ::MessageBoxW(
+        nullptr,
+        L"Просвет уже запущен в другом сеансе Windows.",
+        L"Просвет",
+        MB_OK | MB_ICONINFORMATION);
     return;
   }
   if (::IsIconic(existing)) {
@@ -42,9 +47,10 @@ void BringExistingWindowToFront() {
 // Keep this handle open for the lifetime of the process. Assigning Prosvet to a
 // kill-on-close job makes child processes (notably winws2.exe) die if the GUI
 // is terminated without getting a chance to run its normal shutdown path.
-HANDLE AttachKillOnCloseJob() {
+HANDLE AttachKillOnCloseJob(DWORD* error) {
   HANDLE job = ::CreateJobObjectW(nullptr, nullptr);
   if (job == nullptr) {
+    *error = ::GetLastError();
     return nullptr;
   }
 
@@ -53,9 +59,11 @@ HANDLE AttachKillOnCloseJob() {
   if (!::SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info,
                                  sizeof(info)) ||
       !::AssignProcessToJobObject(job, ::GetCurrentProcess())) {
+    *error = ::GetLastError();
     ::CloseHandle(job);
     return nullptr;
   }
+  *error = ERROR_SUCCESS;
   return job;
 }
 
@@ -76,7 +84,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   // Intentionally not closed: Windows closes process handles on exit, which
   // triggers JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE after an abnormal termination.
-  HANDLE process_job = AttachKillOnCloseJob();
+  DWORD job_error = ERROR_SUCCESS;
+  HANDLE process_job = AttachKillOnCloseJob(&job_error);
+  if (process_job == nullptr) {
+    wchar_t message[256];
+    ::swprintf_s(
+        message,
+        L"Не удалось включить безопасное управление дочерними процессами "
+        L"(ошибка Windows %lu). Просвет не будет запущен.",
+        job_error);
+    ::MessageBoxW(nullptr, message, L"Просвет", MB_OK | MB_ICONERROR);
+    ::ReleaseMutex(single_instance);
+    ::CloseHandle(single_instance);
+    return EXIT_FAILURE;
+  }
   (void)process_job;
 
   // Attach to console when present (e.g., 'flutter run') or create a
