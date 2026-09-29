@@ -31,6 +31,7 @@ class _PowerButtonState extends State<PowerButton> {
     const duration = Duration(milliseconds: 280);
 
     return Semantics(
+      key: const ValueKey('power-toggle'),
       button: true,
       toggled: on,
       label: on ? 'Выключить' : 'Включить',
