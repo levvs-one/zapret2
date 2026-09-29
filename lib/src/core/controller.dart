@@ -40,6 +40,7 @@ class Controller extends ChangeNotifier {
   Power power = Power.off;
   String? error;
   String? unsupported;
+  bool initialized = false;
   final Map<String, Health> health = {
     for (final s in Catalog.all) s.id: Health.idle,
   };
@@ -69,14 +70,18 @@ class Controller extends ChangeNotifier {
       // enforcement in the Windows runner makes this safe for a live session.
       await _exclusive(() => _guard(backend.clearSmartDns));
     }
-    notifyListeners();
-    if (unsupported == null && connect) await start();
+    initialized = true;
+    if (unsupported == null && connect) {
+      await start();
+    } else {
+      notifyListeners();
+    }
   }
 
   Future<void> toggle() => power == Power.off ? start() : stop();
 
   Future<void> start() async {
-    if (power != Power.off || unsupported != null) return;
+    if (!initialized || power != Power.off || unsupported != null) return;
 
     final lifecycleGen = ++_lifecycleGeneration;
     final healthGen = ++_healthGeneration;
