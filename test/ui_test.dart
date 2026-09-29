@@ -9,7 +9,6 @@ import 'controller_test.dart' show FakeBackend;
 void main() {
   testWidgets('power button turns everything on', (tester) async {
     final semantics = tester.ensureSemantics();
-    addTearDown(semantics.dispose);
 
     final c = Controller(
       backend: FakeBackend(),
@@ -45,6 +44,7 @@ void main() {
 
     await tester.scrollUntilVisible(find.text('Spotify'), 200);
     expect(find.byType(Switch), findsWidgets);
+    semantics.dispose();
   });
 
   testWidgets('settings keep secondary controls in submenus', (tester) async {
