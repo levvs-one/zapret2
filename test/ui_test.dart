@@ -33,10 +33,15 @@ void main() {
     expect(find.text('Без замедления'), findsNothing);
     expect(find.text('Закрытые для России'), findsNothing);
 
-    await tester.tap(find.bySemanticsLabel('Включить'));
+    final powerToggle = find.byKey(const ValueKey('power-toggle'));
+    expect(powerToggle, findsOneWidget);
+    expect(tester.getSemantics(powerToggle).label, 'Включить');
+
+    await tester.tap(powerToggle);
     await tester.pumpAndSettle();
     expect(c.power, Power.on);
     expect(find.text('Включено'), findsOneWidget);
+    expect(tester.getSemantics(powerToggle).label, 'Выключить');
 
     await tester.scrollUntilVisible(find.text('Spotify'), 200);
     expect(find.byType(Switch), findsWidgets);
