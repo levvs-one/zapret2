@@ -47,8 +47,8 @@ Future<void> main(List<String> args) async {
   await windowManager.waitUntilReadyToShow(
     const WindowOptions(
       title: 'Просвет',
-      size: Size(440, 780),
-      minimumSize: Size(380, 560),
+      size: Size(480, 760),
+      minimumSize: Size(420, 620),
       center: true,
     ),
     () async {

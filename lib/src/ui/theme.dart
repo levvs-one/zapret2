@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
+abstract final class AppRadii {
+  static const section = 28.0;
+  static const control = 18.0;
+  static const hero = 32.0;
+}
+
 abstract final class AppTheme {
-  static const seed = Color(0xFF0A84FF);
+  static const seed = Color(0xFF0B57D0);
 
   static ThemeData light({String? fontFamily}) =>
       _build(Brightness.light, fontFamily: fontFamily);
+
   static ThemeData dark({String? fontFamily}) =>
       _build(Brightness.dark, fontFamily: fontFamily);
 
@@ -26,18 +33,35 @@ abstract final class AppTheme {
       textTheme: text,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
+        foregroundColor: scheme.onSurface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        titleTextStyle: text.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+        toolbarHeight: 64,
+        titleSpacing: 20,
+        titleTextStyle: text.titleLarge?.copyWith(
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.2,
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          foregroundColor: scheme.onSurfaceVariant,
+          minimumSize: const Size.square(44),
+          shape: const CircleBorder(),
+        ),
       ),
       listTileTheme: ListTileThemeData(
-        contentPadding: const EdgeInsets.only(left: 20, right: 14),
-        minTileHeight: 55,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18),
+        minTileHeight: 62,
         minVerticalPadding: 10,
         iconColor: scheme.onSurfaceVariant,
-        titleTextStyle: text.bodyLarge?.copyWith(fontWeight: FontWeight.w500),
+        titleTextStyle: text.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
+        subtitleTextStyle: text.bodyMedium?.copyWith(
+          color: scheme.onSurfaceVariant,
+          height: 1.25,
+        ),
       ),
       switchTheme: const SwitchThemeData(
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -45,14 +69,31 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, 50),
-          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadii.control),
+          ),
           textStyle: text.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
       dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.45),
+        color: scheme.outlineVariant.withValues(alpha: 0.38),
         space: 1,
         thickness: 1,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+        ),
+      ),
+      tooltipTheme: TooltipThemeData(
+        waitDuration: const Duration(milliseconds: 450),
+        decoration: BoxDecoration(
+          color: scheme.inverseSurface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        textStyle: text.bodySmall?.copyWith(color: scheme.onInverseSurface),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
@@ -66,6 +107,6 @@ abstract final class AppTheme {
 
 extension StatusColors on ColorScheme {
   Color get positive => brightness == Brightness.light
-      ? const Color(0xFF188038)
-      : const Color(0xFF67D98B);
+      ? const Color(0xFF137333)
+      : const Color(0xFF7AD99A);
 }

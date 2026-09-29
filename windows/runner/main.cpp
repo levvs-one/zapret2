@@ -37,9 +37,6 @@ bool BringExistingWindowToFront() {
   return true;
 }
 
-// Keep this handle open for the lifetime of the process. Assigning Prosvet to a
-// kill-on-close job makes child processes (notably winws2.exe) die if the GUI
-// is terminated without getting a chance to run its normal shutdown path.
 HANDLE AttachKillOnCloseJob(DWORD* error) {
   HANDLE job = ::CreateJobObjectW(nullptr, nullptr);
   if (job == nullptr) {
@@ -64,20 +61,17 @@ HANDLE AttachKillOnCloseJob(DWORD* error) {
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
-  std::vector<std::string> command_line_arguments =
-      GetCommandLineArguments();
+  std::vector<std::string> command_line_arguments = GetCommandLineArguments();
   const bool background =
       std::find(command_line_arguments.begin(), command_line_arguments.end(),
                 "--background") != command_line_arguments.end();
 
-  HANDLE ready_event =
-      ::CreateEventW(nullptr, TRUE, FALSE, kReadyEvent);
+  HANDLE ready_event = ::CreateEventW(nullptr, TRUE, FALSE, kReadyEvent);
   if (ready_event == nullptr) {
     return EXIT_FAILURE;
   }
 
-  HANDLE single_instance =
-      ::CreateMutexW(nullptr, TRUE, kSingleInstanceMutex);
+  HANDLE single_instance = ::CreateMutexW(nullptr, TRUE, kSingleInstanceMutex);
   if (single_instance == nullptr) {
     ::CloseHandle(ready_event);
     return EXIT_FAILURE;
@@ -99,17 +93,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
       return EXIT_SUCCESS;
     }
 
-    // If the mutex becomes available (or abandoned), the first process exited
-    // before publishing a usable window. This process now owns the mutex and
-    // can replace it immediately instead of throwing away the user's launch.
     const bool replaced_primary =
         startup == WAIT_OBJECT_0 + 1 || startup == WAIT_ABANDONED_0 + 1;
     if (!replaced_primary) {
-      ::MessageBoxW(
-          nullptr,
-          L"Просвет уже запускается, но окно пока недоступно.",
-          L"Просвет",
-          MB_OK | MB_ICONINFORMATION);
+      ::MessageBoxW(nullptr,
+                    L"Просвет уже запускается, но окно пока недоступно.",
+                    L"Просвет", MB_OK | MB_ICONINFORMATION);
       ::CloseHandle(single_instance);
       ::CloseHandle(ready_event);
       return EXIT_FAILURE;
@@ -117,8 +106,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::ResetEvent(ready_event);
   }
 
-  // Intentionally not closed: Windows closes process handles on exit, which
-  // triggers JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE after an abnormal termination.
   DWORD job_error = ERROR_SUCCESS;
   HANDLE process_job = AttachKillOnCloseJob(&job_error);
   if (process_job == nullptr) {
@@ -136,14 +123,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
   (void)process_job;
 
-  // Attach to console when present (e.g., 'flutter run') or create a
-  // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
     CreateAndAttachConsole();
   }
 
-  // Initialize COM, so that it is available for use in the library and/or
-  // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
   flutter::DartProject project(L"data");
@@ -151,8 +134,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
-  Win32Window::Size size(1280, 720);
-  if (!window.Create(L"Prosvet", origin, size)) {
+  Win32Window::Size size(480, 760);
+  if (!window.Create(L"Просвет", origin, size)) {
     ::CoUninitialize();
     ::ReleaseMutex(single_instance);
     ::CloseHandle(single_instance);
@@ -160,10 +143,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_FAILURE;
   }
 
-  // The Dart side can change the visible title at runtime. A window property is
-  // a stable cross-process identity for the second-launch path.
-  ::SetPropW(window.GetHandle(), kWindowProperty,
-             reinterpret_cast<HANDLE>(1));
+  ::SetPropW(window.GetHandle(), kWindowProperty, reinterpret_cast<HANDLE>(1));
   ::SetEvent(ready_event);
   window.SetQuitOnClose(true);
 

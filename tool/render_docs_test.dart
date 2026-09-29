@@ -105,7 +105,7 @@ Widget _snapshotApp(Widget home) {
 void main() {
   testWidgets('render README screenshots from the real app', (tester) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(440, 780);
+    tester.view.physicalSize = const Size(480, 820);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
 

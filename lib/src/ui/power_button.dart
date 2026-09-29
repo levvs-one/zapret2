@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/controller.dart';
 
-/// The one control that matters. Neutral when off; filled with a soft halo
-/// when on; a thin ring spins around it while the engine starts or stops.
+/// The primary control. It stays visually quiet when off and gains one clear
+/// accent when active. Busy states add a thin progress ring, nothing more.
 class PowerButton extends StatefulWidget {
   const PowerButton({super.key, required this.power, required this.onPressed});
 
@@ -18,17 +18,17 @@ class _PowerButtonState extends State<PowerButton> {
   bool _pressed = false;
   bool _focused = false;
 
-  static const _size = 140.0;
-  static const _halo = 20.0;
+  static const _size = 128.0;
+  static const _halo = 16.0;
 
   @override
   Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).colorScheme;
     final on = widget.power == Power.on;
     final busy =
         widget.power == Power.starting || widget.power == Power.stopping;
     const curve = Curves.easeOutCubic;
-    const duration = Duration(milliseconds: 320);
+    const duration = Duration(milliseconds: 280);
 
     return Semantics(
       button: true,
@@ -62,8 +62,8 @@ class _PowerButtonState extends State<PowerButton> {
               : (_) => setState(() => _pressed = false),
           onTap: widget.onPressed,
           child: AnimatedScale(
-            scale: _pressed ? 0.95 : 1,
-            duration: const Duration(milliseconds: 140),
+            scale: _pressed ? 0.96 : 1,
+            duration: const Duration(milliseconds: 120),
             curve: Curves.easeOut,
             child: SizedBox.square(
               dimension: _size + _halo * 2,
@@ -78,14 +78,15 @@ class _PowerButtonState extends State<PowerButton> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: on
-                          ? c.primary.withValues(alpha: 0.12)
+                          ? colors.primary.withValues(alpha: 0.10)
                           : Colors.transparent,
                     ),
                   ),
                   if (busy)
-                    const SizedBox.square(
+                    SizedBox.square(
                       dimension: _size + 12,
                       child: CircularProgressIndicator(
+                        color: colors.primary,
                         strokeWidth: 2.5,
                         strokeCap: StrokeCap.round,
                       ),
@@ -97,26 +98,26 @@ class _PowerButtonState extends State<PowerButton> {
                     height: _size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: on ? c.primary : c.surfaceContainerLowest,
+                      color: on
+                          ? colors.primary
+                          : colors.surfaceContainerHighest,
                       border: Border.all(
                         color: _focused
-                            ? on
-                                  ? c.onPrimary
-                                  : c.primary
+                            ? colors.primary
                             : on
-                            ? c.primary
-                            : c.outlineVariant,
+                            ? colors.primary
+                            : colors.outlineVariant,
                         width: _focused ? 3 : 1,
                       ),
                     ),
                     child: TweenAnimationBuilder<Color?>(
                       tween: ColorTween(
-                        end: on ? c.onPrimary : c.onSurfaceVariant,
+                        end: on ? colors.onPrimary : colors.onSurfaceVariant,
                       ),
                       duration: duration,
                       builder: (_, color, _) => Icon(
                         Icons.power_settings_new_rounded,
-                        size: 56,
+                        size: 52,
                         color: color,
                       ),
                     ),
