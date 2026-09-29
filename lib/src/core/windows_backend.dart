@@ -72,17 +72,22 @@ class WindowsBackend implements Backend {
   @override
   Future<void> stopDpi() => _winws.stop();
 
-  Future<void> _ps(String script) async {
+  Future<void> _ps(String script, String userMessage) async {
     final r = await shell.powershell(script);
-    if (!r.ok) throw StateError(r.stderr.trim());
+    if (r.ok) return;
+    log.write('PowerShell failed (${r.exitCode}): ${r.stderr.trim()}');
+    throw StateError(userMessage);
   }
 
   @override
-  Future<void> applySmartDns(List<String> domains, List<String> servers) =>
-      _ps(nrptApplyScript(domains: domains, servers: servers));
+  Future<void> applySmartDns(List<String> domains, List<String> servers) => _ps(
+    nrptApplyScript(domains: domains, servers: servers),
+    'Не удалось включить Smart DNS. Попробуйте ещё раз.',
+  );
 
   @override
-  Future<void> clearSmartDns() => _ps(nrptClearScript());
+  Future<void> clearSmartDns() =>
+      _ps(nrptClearScript(), 'Не удалось вернуть настройки DNS.');
 
   @override
   Future<void> startTelegram({
