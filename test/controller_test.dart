@@ -95,6 +95,15 @@ void main() {
     );
   });
 
+  test('start is ignored until initialization completes', () async {
+    await c.start();
+    expect(c.power, Power.off);
+    expect(backend.calls, isEmpty);
+
+    await c.init(connect: false);
+    await c.start();
+    expect(c.power, Power.on);
+  });
   test('start applies every mechanism and checks services', () async {
     await c.init(connect: false);
     expect(backend.calls, ['clearDns']);
