@@ -1,38 +1,74 @@
-name: Не работает
-description: Сервис не открывается или Просвет ведёт себя странно
+name: Баг
+description: Что-то не работает или работает нестабильно
+title: "[Баг] "
 labels: [bug]
 body:
   - type: dropdown
     id: service
     attributes:
-      label: Что не работает
+      label: Что не работает?
       multiple: true
-      options: [YouTube, Discord, Telegram, Gemini / AI Studio / Antigravity, ChatGPT, Claude, Copilot, Spotify, Само приложение]
+      options:
+        - YouTube
+        - Discord
+        - Telegram Desktop
+        - Gemini / AI Studio / NotebookLM / Antigravity
+        - ChatGPT / Sora / Codex
+        - Claude
+        - Copilot
+        - Spotify
+        - Запуск / автозапуск / интерфейс
+        - Другое
     validations:
       required: true
-  - type: input
-    id: isp
-    attributes:
-      label: Провайдер и тип подключения
-      description: Домашний интернет или мобильная сеть — этого достаточно. Город указывать не нужно.
-      placeholder: Ростелеком, домашний / МТС, мобильный
-    validations:
-      required: true
-  - type: textarea
-    id: what
-    attributes:
-      label: Что происходит
-      placeholder: Включил, YouTube отмечен красным, видео не грузится.
-    validations:
-      required: true
+
   - type: input
     id: version
     attributes:
-      label: Версия Просвета и Windows
-      placeholder: 0.1.0, Windows 11 24H2
+      label: Версия Просвета
+      placeholder: "0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows
+      placeholder: "Windows 11 24H2"
+    validations:
+      required: true
+
+  - type: input
+    id: provider
+    attributes:
+      label: Провайдер
+      placeholder: "Ростелеком / МТС / мобильный интернет"
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Что произошло?
+      description: Коротко — что нажали, что ожидали и что получили.
+      placeholder: |
+        1. Включил Просвет
+        2. Открыл ...
+        3. ...
+    validations:
+      required: true
+
   - type: textarea
     id: log
     attributes:
       label: Журнал
-      description: Настройки → О программе → Журнал. Вставьте последние строки.
+      description: "Настройки → О программе → Журнал. Удалите из текста всё, чем не хотите делиться."
       render: text
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Перед отправкой
+      options:
+        - label: Я использую свежий релиз из GitHub Releases.
+          required: true
+        - label: Я проверил, что одновременно не запущен другой VPN или zapret-клиент.
+          required: false

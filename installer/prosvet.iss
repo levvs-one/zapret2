@@ -13,6 +13,7 @@ AppPublisher={#MyAppPublisher}
 AppPublisherURL=https://github.com/levvs-one/zapret2
 AppSupportURL=https://github.com/levvs-one/zapret2/issues
 AppUpdatesURL=https://github.com/levvs-one/zapret2/releases/latest
+AppMutex=Global\Prosvet.SingleInstance
 DefaultDirName={autopf}\Prosvet
 DefaultGroupName=Просвет
 DisableProgramGroupPage=yes
