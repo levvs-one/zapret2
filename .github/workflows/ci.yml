@@ -49,6 +49,31 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
+      - name: Verify uninstall cleanup is path-scoped
+        shell: pwsh
+        run: |
+          $a = Join-Path $env:RUNNER_TEMP "prosvet-cleanup-a"
+          $b = Join-Path $env:RUNNER_TEMP "prosvet-cleanup-b"
+          New-Item -ItemType Directory -Force $a, $b | Out-Null
+          Copy-Item "$env:SystemRoot\System32\ping.exe" "$a\prosvet.exe"
+          Copy-Item "$env:SystemRoot\System32\ping.exe" "$b\prosvet.exe"
+          Copy-Item "installer\stop-prosvet.ps1" "$a\stop-prosvet.ps1"
+
+          $own = Start-Process "$a\prosvet.exe" -ArgumentList "-t","127.0.0.1" -PassThru
+          $other = Start-Process "$b\prosvet.exe" -ArgumentList "-t","127.0.0.1" -PassThru
+          try {
+            Start-Sleep -Seconds 1
+            & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$a\stop-prosvet.ps1"
+            Start-Sleep -Seconds 1
+            $own.Refresh()
+            $other.Refresh()
+            if (-not $own.HasExited) { throw "cleanup did not stop the matching installation" }
+            if ($other.HasExited) { throw "cleanup stopped a different prosvet.exe" }
+          } finally {
+            Stop-Process -Id $own.Id -Force -ErrorAction SilentlyContinue
+            Stop-Process -Id $other.Id -Force -ErrorAction SilentlyContinue
+          }
+
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
         with:
           channel: stable
