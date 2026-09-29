@@ -58,9 +58,8 @@ class _SnapshotBackend implements Backend {
   }
 
   @override
-  String? get telegramLink => _telegram
-      ? 'tg://proxy?server=127.0.0.1&port=1443&secret=dd00'
-      : null;
+  String? get telegramLink =>
+      _telegram ? 'tg://proxy?server=127.0.0.1&port=1443&secret=dd00' : null;
 
   @override
   Future<void> openTelegramLink() async {}
@@ -84,7 +83,8 @@ Future<void> _capture(
 }) async {
   await tester.runAsync(() async {
     final boundary =
-        boundaryKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     if (bytes == null) throw StateError('Could not encode UI snapshot');
@@ -154,10 +154,7 @@ void main() {
     await _capture(tester, boundaryKey, 'docs/on.png');
 
     await tester.pumpWidget(
-      RepaintBoundary(
-        key: boundaryKey,
-        child: _snapshotApp(settings()),
-      ),
+      RepaintBoundary(key: boundaryKey, child: _snapshotApp(settings())),
     );
     await tester.pumpAndSettle();
     await _capture(tester, boundaryKey, 'docs/settings.png');
