@@ -32,6 +32,7 @@ class _PowerButtonState extends State<PowerButton> {
 
     return Semantics(
       key: const ValueKey('power-toggle'),
+      container: true,
       button: true,
       toggled: on,
       label: on ? 'Выключить' : 'Включить',
