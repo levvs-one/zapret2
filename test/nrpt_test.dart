@@ -1,8 +1,16 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prosvet/src/catalog/services.dart';
 import 'package:prosvet/src/engine/smartdns/nrpt.dart';
+import 'package:prosvet/src/engine/smartdns/provider.dart';
 
 void main() {
+  test('Xbox DNS endpoints match the published IPv4 pair', () {
+    expect(SmartDnsProvider.xboxDns.servers, [
+      '111.88.96.54',
+      '111.88.96.55',
+    ]);
+  });
+
   test('every domain covers itself and subdomains', () {
     expect(nrptNamespaces(['Claude.ai ']), ['.claude.ai', 'claude.ai']);
   });
