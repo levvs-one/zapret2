@@ -1,152 +1,148 @@
 <div align="center">
 
-<img src="assets/icon.png" width="88" alt="">
+<img src="assets/icon.png" width="88" alt="Просвет">
 
 # Просвет
 
-**YouTube, Discord, Telegram и AI-сервисы без VPN.**<br>
-Одна кнопка. Без ручного перебора стратегий. Windows 10 и 11.
+**Точечный Windows-клиент для YouTube, Discord, Telegram и выбранных сервисов — без полного VPN-туннеля.**
 
-[![Скачать](https://img.shields.io/github/v/release/levvs-one/zapret2?label=%D0%A1%D0%BA%D0%B0%D1%87%D0%B0%D1%82%D1%8C&color=0B57D0)](https://github.com/levvs-one/zapret2/releases/latest)
 [![CI](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml/badge.svg)](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml)
-[![MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/levvs-one/zapret2)](https://github.com/levvs-one/zapret2/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-<img src="docs/off.png" width="260" alt="Выключено">&nbsp;&nbsp;<img src="docs/on.png" width="260" alt="Включено">&nbsp;&nbsp;<img src="docs/settings.png" width="260" alt="Настройки">
+<img src="docs/off.png" width="250" alt="Просвет выключен">&nbsp;&nbsp;<img src="docs/on.png" width="250" alt="Просвет включен">&nbsp;&nbsp;<img src="docs/settings.png" width="250" alt="Настройки Просвета">
 
 </div>
 
 ---
 
-Просвет автоматически включает только тот механизм, который нужен конкретному сервису: DPI-обход для YouTube и Discord, Smart DNS для региональных ограничений и локальный MTProto-прокси для Telegram. Остальной трафик остаётся прямым.
+Просвет включает только механизм, который нужен выбранному сервису. Остальной трафик не отправляется в общий VPN-туннель.
 
-**Скачать → установить → нажать одну кнопку.**
+- **YouTube и Discord** — DPI-обход через закреплённую версию [zapret2](https://github.com/bol-van/zapret2).
+- **Telegram Desktop** — локальный MTProto-прокси через WebSocket.
+- **Gemini, ChatGPT, Claude, Copilot, Spotify и другие выбранные домены** — Smart DNS через Windows NRPT.
+- Рабочая DPI-стратегия запоминается отдельно для каждой сети.
+- Каждый сервис можно включить или выключить отдельно.
+- При выключении приложение останавливает дочерние процессы и удаляет созданные им NRPT-правила.
 
-- без VPN-сервера и подписки;
-- без `general.bat`, ALT-режимов и ручного перебора стратегий;
-- рабочая DPI-стратегия запоминается отдельно для каждой сети;
-- каждый сервис можно выключить отдельно;
-- после выключения системные DNS-правила и дочерние процессы очищаются.
+## Скачать
 
-## Что работает
+Откройте [последний релиз](https://github.com/levvs-one/zapret2/releases/latest).
 
-| Сервис | Что было | Как Просвет это решает |
-| --- | --- | --- |
-| YouTube | замедление видео | обход DPI (zapret2) |
-| Discord | не открывается, нет голоса | обход DPI, включая голосовые каналы и демонстрацию экрана |
-| Telegram Desktop | не грузятся фото, видео и файлы | локальный MTProto-прокси через WebSocket самого Telegram |
-| Gemini, AI Studio, NotebookLM, Antigravity | «недоступно в вашей стране» | умный DNS только для этих доменов |
-| ChatGPT, Sora, Codex | «unsupported country» | умный DNS |
-| Claude | «недоступно в вашем регионе» | умный DNS |
-| Copilot | не пускает | умный DNS |
-| Spotify | недоступен в России | умный DNS |
+Для Windows 10/11 x64 публикуются:
 
-Любой сервис выключается отдельным переключателем.
+- `Prosvet-<version>-Setup.exe` — обычная установка;
+- `Prosvet-<version>-windows-x64.zip` — portable-сборка;
+- `SHA256SUMS.txt` — SHA-256 обоих артефактов.
 
-## Установка
-
-1. Откройте [последний релиз](https://github.com/levvs-one/zapret2/releases/latest) и скачайте `Prosvet-…-Setup.exe`.
-2. Запустите установщик и подтвердите UAC.
-3. Откройте «Просвет» из меню Пуск и нажмите кнопку питания.
-
-Установщик добавляет Просвет в меню Пуск и стандартный список приложений Windows. Удаление через «Параметры → Приложения» также убирает задачу автозапуска, NRPT-правила и локальные данные Просвета.
-
-Нужна portable-версия без установки — рядом в релизе лежит `Prosvet-…-windows-x64.zip`.
-
-Рядом с обоими файлами публикуется `.sha256`. Пока у проекта нет Authenticode-сертификата, SmartScreen может показать предупреждение для нового Setup.exe. Хэш можно проверить штатной командой:
+Бинарники пока не подписаны коммерческим Authenticode-сертификатом, поэтому SmartScreen может показать предупреждение о неизвестном издателе. Проверяйте, что файл скачан именно из GitHub Releases, и сверяйте SHA-256.
 
 ```powershell
-Get-FileHash .\Prosvet-*-Setup.exe -Algorithm SHA256
+Get-FileHash .\Prosvet-0.1.0-Setup.exe -Algorithm SHA256
 ```
 
-Для Telegram после включения нажмите «Подключить Telegram Desktop»: Telegram сам предложит добавить локальный прокси. Это делается один раз.
+## Использование
 
-В «Настройки → Запуск» можно включить автозапуск. Тогда Просвет стартует скрытым в трее и уже не показывает UAC при каждом входе в Windows.
+1. Установите или распакуйте Просвет.
+2. Запустите приложение с подтверждением UAC.
+3. Оставьте включёнными только нужные сервисы.
+4. Нажмите большую кнопку питания.
 
-## Как это устроено
+Для Telegram после первого включения нажмите **«Подключить Telegram Desktop»**. В настройках можно включить автозапуск и автоматическое применение выбранных правил.
 
-Блокировки бывают трёх видов, и под каждый нужен свой способ.
+## Что меняется в Windows
 
-**1. DPI у провайдера (YouTube, Discord).** Оборудование ТСПУ смотрит на первые пакеты соединения, находит в них имя сайта и режет трафик. Просвет запускает движок [zapret2](https://github.com/bol-van/zapret2), который меняет эти пакеты так, что ТСПУ их не распознаёт, а сайт понимает. Обработка включается только для доменов YouTube и Discord, остальной трафик не трогается.
+Просвет работает с системными сетевыми механизмами, поэтому ему нужны права администратора.
 
-Разные провайдеры блокируют по-разному, поэтому способов несколько. Просвет подбирает способ сам: если соединение с сайтом не удалось, для этого сайта включается следующий способ. Рабочий способ запоминается для каждой сети отдельно, так что дома, на работе и в мобильном интернете подбор происходит один раз. Никаких «попробуйте ALT2, потом FAKE3».
+Он может:
 
-**2. Сервис сам не пускает из России (Gemini, ChatGPT, Claude).** DPI тут ни при чём, сервис смотрит на IP-адрес. Просвет прописывает в Windows правила NRPT: запросы только к доменам этих сервисов уходят в умный DNS [Xbox DNS](https://xbox-dns.ru), который направляет их через зарубежный шлюз. Остальной интернет продолжает работать через ваш обычный DNS. При выключении правила удаляются, а после сбоя удаляются при следующем запуске.
+- запускать `winws2.exe` и WinDivert, пока активен DPI-обход;
+- создавать NRPT-правила только для выбранных Smart DNS-доменов;
+- слушать `127.0.0.1:1443` для локального Telegram-прокси;
+- создать одну задачу Task Scheduler `Prosvet`, если включён автозапуск;
+- хранить настройки и журнал в `%LOCALAPPDATA%\Prosvet`.
 
-**3. Telegram.** Telegram режут по IP-адресам его дата-центров. Просвет поднимает на `127.0.0.1:1443` MTProto-прокси, который передаёт трафик Telegram через его же WebSocket-адреса `kws*.web.telegram.org`. Это порт [tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) на Dart, встроенный прямо в программу.
+Он **не** устанавливает корневые сертификаты, браузерные расширения или постоянную Windows-службу и не собирает телеметрию.
 
-## Про Antigravity, Gemini и регион аккаунта
+Подробнее: [PRIVACY.md](PRIVACY.md) и [SECURITY.md](SECURITY.md).
 
-Умный DNS меняет только то, с какого адреса сервис видит ваши запросы. Этого достаточно, если у Google-аккаунта нормальная страна. Но Google, OpenAI и Anthropic проверяют ещё и сам аккаунт:
+## Надёжность
 
-- **страну аккаунта Google** (её видно на [policies.google.com/terms](https://policies.google.com/terms), строка «Страна, связанная с аккаунтом»);
-- **платёжный профиль** в Google Payments;
-- **номер телефона** при регистрации в ChatGPT и Claude.
+Системные изменения сериализуются одним контроллером: start/stop, переключение сервиса и аварийное выключение не должны выполняться одновременно.
 
-Если сервис пишет «недоступно в вашей стране» при включённом Просвете, проблема в аккаунте, а не в сети. Сменить страну аккаунта Google можно через [форму запроса](https://policies.google.com/country-association-form), когда вы действительно пользуетесь им из другой страны.
+Windows runner дополнительно обеспечивает:
 
-Патчи, которые правят код Antigravity и выдают пользователя за сотрудника Google, Просвет не встраивает и не будет: это нарушение правил Google, за такое блокируют аккаунты.
+- единственный экземпляр приложения;
+- Job Object с `KILL_ON_JOB_CLOSE`, чтобы дочерний `winws2.exe` завершался вместе с GUI;
+- очистку старых NRPT-правил при следующем старте после сбоя;
+- install/uninstall smoke-test в CI;
+- закреплённую версию zapret2 с проверкой SHA-256 перед сборкой.
+
+Архитектура и границы компонентов: [docs/architecture.md](docs/architecture.md).
 
 ## Если что-то не работает
 
-| Проблема | Что сделать |
-| --- | --- |
-| «Запустите от имени администратора» | Правый клик по `prosvet.exe` → «Запуск от имени администратора». |
-| Сервис отмечен красным | Настройки → Сеть → «Проверить сервисы». Просвет повторит проверку и для DPI попробует следующие способы. |
-| Gemini или ChatGPT не открываются в браузере | Выключите «Безопасный DNS» (DNS-over-HTTPS) в браузере: он обходит системные настройки DNS. Chrome: Настройки → Конфиденциальность → Безопасность → «Использовать безопасный DNS». |
-| Сервис открывается, но пишет «недоступно в стране» | Смотрите раздел про регион аккаунта выше. |
-| Антивирус ругается на `WinDivert64.sys` | Не отключайте защиту вслепую. Убедитесь, что файл скачан из Releases, сверьте опубликованный SHA-256 и приложите название детекта к issue, если предупреждение остаётся. |
-| Не работает вместе с VPN | Выключите VPN или zapret-сборки: два перехватчика трафика мешают друг другу. |
+Короткая версия:
 
-Журнал: «Настройки → О программе → Журнал». Приложите его к [issue](../../issues), если нужна помощь.
+- сервис красный → **Настройки → Сеть → Проверить сервисы**;
+- Smart DNS не влияет на браузер → проверьте, не включён ли в браузере собственный DNS-over-HTTPS;
+- одновременно работает другой VPN/zapret/перехватчик → временно отключите его для диагностики;
+- антивирус ругается на WinDivert → не отключайте защиту вслепую, сначала проверьте источник и SHA-256 релиза.
 
-## Что Просвет меняет в Windows
-
-- запускает `winws2.exe`/WinDivert только пока включён DPI-обход;
-- создаёт NRPT-правила только для выбранных доменов Smart DNS;
-- при включённом автозапуске создаёт одну задачу Task Scheduler `Prosvet`;
-- хранит настройки и журнал в `%LOCALAPPDATA%\Prosvet`;
-- не устанавливает корневые сертификаты, браузерные расширения и системные службы.
-
-Подробнее: [конфиденциальность](PRIVACY.md) и [модель безопасности](SECURITY.md).
+Полная диагностика: [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Разработка
 
+Нужен актуальный Flutter stable.
+
 ```bash
 flutter pub get
+dart format --output=none --set-exit-if-changed lib test tool tools
+flutter analyze
 flutter test
-flutter run -d linux -- --demo      # интерфейс с имитацией, без движка
 ```
 
-Сборка для Windows:
+Интерфейс можно запускать без системного движка:
+
+```bash
+flutter run -d linux -- --demo
+# или
+flutter run -d windows -- --demo
+```
+
+Windows release build:
 
 ```powershell
-./tools/fetch-engine.ps1            # zapret2 v1.0.5.2 + проверка SHA-256
+./tools/fetch-engine.ps1
 flutter build windows --release
 ```
 
-CI дополнительно собирает и устанавливает `Setup.exe`, проверяет файлы установленной копии и прогоняет штатный uninstall.
+CI отдельно проверяет синтаксис аргументов winws2 парсером самого zapret2, собирает Windows-приложение и Setup.exe, устанавливает его в временную папку и выполняет штатный uninstall.
 
-`tools/verify-engine-args.sh` прогоняет командную строку winws2, которую строит Просвет, через парсер самого zapret2 (`nfqws2 --dry-run`). Это же делает CI на каждый коммит.
+## Структура
 
-```
+```text
 lib/src/
-  catalog/            сервисы и домены
-  engine/zapret/      командная строка winws2, способы обхода, процесс
-  engine/smartdns/    правила NRPT и проверка DNS
-  engine/telegram/    MTProto-прокси через WebSocket
-  core/               контроллер состояния, настройки, проверки доступности
-  ui/                 интерфейс (Material 3)
-engine/               Lua-расширение и списки доменов для zapret2
+  catalog/            каталог сервисов и доменов
+  core/               состояние, lifecycle и backend boundary
+  engine/zapret/      стратегии и запуск winws2
+  engine/smartdns/    NRPT и DNS-проверки
+  engine/telegram/    локальный MTProto/WebSocket proxy
+  platform/           Windows shell, paths, autostart
+  ui/                 presentation layer
+
+engine/               локальные Lua/list extensions для zapret2
+installer/            Inno Setup
+test/                 unit/widget/lifecycle tests
+tool/                 screenshot tooling
+tools/                build/engine verification scripts
 ```
 
-Хотите добавить сервис или способ обхода: [CONTRIBUTING.md](CONTRIBUTING.md). История версий: [CHANGELOG.md](CHANGELOG.md).
-
-## Благодарности
-
-- [bol-van/zapret2](https://github.com/bol-van/zapret2): движок обхода DPI. Вся магия с пакетами здесь.
-- [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy): идея и протокол Telegram-прокси через WebSocket.
-- [Xbox DNS](https://xbox-dns.ru): умный DNS для сервисов, которые не пускают из России.
+Как вносить изменения: [CONTRIBUTING.md](CONTRIBUTING.md).  
+Как устроен релиз: [docs/release.md](docs/release.md).  
+История изменений: [CHANGELOG.md](CHANGELOG.md).  
+Сторонние компоненты: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Лицензия
 
-MIT, см. [LICENSE](LICENSE). Лицензии встроенных компонентов: [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+MIT. См. [LICENSE](LICENSE).

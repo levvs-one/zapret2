@@ -15,6 +15,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -24,12 +25,22 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - name: Verify lockfile is current
+        run: git diff --exit-code -- pubspec.lock
+      - run: dart format --output=none --set-exit-if-changed lib test tool tools
       - run: flutter analyze
-      - run: flutter test
+      - run: flutter test --coverage
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+          retention-days: 7
 
   engine:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -39,12 +50,13 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Verify winws2 arguments with zapret2 itself
+      - name: Verify winws2 arguments with zapret2 parser
         run: tools/verify-engine-args.sh
 
   windows:
     runs-on: windows-latest
-    needs: check
+    timeout-minutes: 35
+    needs: [check, engine]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -53,19 +65,31 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: ./tools/fetch-engine.ps1
+      - run: flutter pub get
+      - name: Read product version
         shell: pwsh
-      - run: flutter build windows --release
+        run: |
+          $line = Get-Content pubspec.yaml | Where-Object { $_ -match '^version:\s*' } | Select-Object -First 1
+          $version = (($line -replace '^version:\s*','') -split '\+')[0].Trim()
+          if (-not $version) { throw "pubspec version not found" }
+          "PROSVET_VERSION=$version" >> $env:GITHUB_ENV
+      - name: Fetch pinned engine
+        run: ./tools/fetch-engine.ps1
+        shell: pwsh
+      - name: Build Windows application
+        shell: pwsh
+        run: flutter build windows --release --build-name="$env:PROSVET_VERSION" --dart-define="PROSVET_VERSION=$env:PROSVET_VERSION"
       - name: Build installer
         shell: pwsh
         run: |
           choco install innosetup --version=6.7.1 -y --no-progress
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          & $iscc "/DMyAppVersion=0.1.0" "installer\prosvet.iss"
+          & $iscc "/DMyAppVersion=$env:PROSVET_VERSION" "installer\prosvet.iss"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Smoke-test installer and uninstaller
         shell: pwsh
         run: |
-          $setup = Get-Item "installer\Output\Prosvet-0.1.0-Setup.exe"
+          $setup = Get-Item "installer\Output\Prosvet-$env:PROSVET_VERSION-Setup.exe"
           $target = Join-Path $env:TEMP "ProsvetInstallSmoke"
           Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
           if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
@@ -77,18 +101,25 @@ jobs:
         shell: pwsh
         run: |
           $bundle = "build/windows/x64/runner/Release"
-          Copy-Item LICENSE, THIRD_PARTY_NOTICES.md $bundle
-          Compress-Archive -Path "$bundle/*" -DestinationPath Prosvet-windows-x64.zip
+          Copy-Item LICENSE,README.md,SECURITY.md,PRIVACY.md,THIRD_PARTY_NOTICES.md -Destination $bundle
+          @(
+            "Prosvet $env:PROSVET_VERSION"
+            "Commit: $env:GITHUB_SHA"
+            (Get-Content "$bundle/engine/VERSION" -Raw).Trim()
+          ) | Set-Content "$bundle/BUILD_INFO.txt" -Encoding utf8
+          Compress-Archive -Path "$bundle/*" -DestinationPath "Prosvet-$env:PROSVET_VERSION-windows-x64.zip" -CompressionLevel Optimal
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Prosvet-windows-x64
           path: |
-            Prosvet-windows-x64.zip
-            installer/Output/Prosvet-0.1.0-Setup.exe
-
+            Prosvet-*-windows-x64.zip
+            installer/Output/Prosvet-*-Setup.exe
+          if-no-files-found: error
+          retention-days: 14
 
   docs-screenshots:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -118,3 +149,5 @@ jobs:
             docs/off.png
             docs/on.png
             docs/settings.png
+          if-no-files-found: error
+          retention-days: 7

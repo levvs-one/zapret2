@@ -1,0 +1,36 @@
+name: DPI-стратегия
+description: Рабочая или нерабочая стратегия для конкретного подключения
+labels: [strategy]
+body:
+  - type: input
+    id: isp
+    attributes:
+      label: Провайдер и тип подключения
+      placeholder: Ростелеком, домашний / МТС, мобильный
+    validations:
+      required: true
+  - type: dropdown
+    id: service
+    attributes:
+      label: Сервис
+      options: [YouTube, Discord]
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Результат
+      description: Что работает или не работает и после какого действия.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия Просвета и Windows
+      placeholder: 0.1.0, Windows 11 24H2
+  - type: textarea
+    id: log
+    attributes:
+      label: Фрагмент журнала
+      description: Только относящиеся к проблеме строки. Перед отправкой проверьте содержимое.
+      render: text
