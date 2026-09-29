@@ -10,6 +10,9 @@ AppId={{4C5B5AC7-5B75-4BE7-B1A6-03BBF8C17E29}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppPublisherURL=https://github.com/levvs-one/zapret2
+AppSupportURL=https://github.com/levvs-one/zapret2/issues
+AppUpdatesURL=https://github.com/levvs-one/zapret2/releases/latest
 DefaultDirName={autopf}\Prosvet
 DefaultGroupName=Просвет
 DisableProgramGroupPage=yes
@@ -27,6 +30,9 @@ RestartApplications=no
 VersionInfoVersion={#MyAppVersion}.0
 VersionInfoProductName=Просвет
 VersionInfoDescription=Просвет — доступ к сервисам без VPN
+
+[Languages]
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
