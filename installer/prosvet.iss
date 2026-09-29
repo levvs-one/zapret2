@@ -38,7 +38,7 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 [Files]
 Source: "..\build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion\nSource: "stop-prosvet.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Просвет"; Filename: "{app}\{#MyAppExeName}"
@@ -59,8 +59,9 @@ function InitializeUninstall(): Boolean;
 var
   ResultCode: Integer;
 begin
-  Exec(ExpandConstant('{sys}\taskkill.exe'),
-       '/IM prosvet.exe /T /F',
+  Exec(ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe'),
+       '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""' +
+       ExpandConstant('{app}\stop-prosvet.ps1') + '""',
        '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Result := True;
 end;
