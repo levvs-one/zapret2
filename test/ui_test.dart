@@ -7,6 +7,36 @@ import 'package:prosvet/src/core/settings.dart';
 import 'controller_test.dart' show FakeBackend;
 
 void main() {
+  testWidgets('power stays disabled until initialization completes', (
+    tester,
+  ) async {
+    final c = Controller(
+      backend: FakeBackend(),
+      settings: Settings.defaults(),
+      saveSettings: (_) {},
+      probeInterval: Duration.zero,
+    );
+
+    await tester.pumpWidget(
+      ProsvetApp(
+        controller: c,
+        autostart: null,
+        logPath: '',
+        version: 't',
+        desktopShell: false,
+      ),
+    );
+
+    expect(find.text('Подготовка…'), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Включить'));
+    await tester.pump();
+    expect(c.power, Power.off);
+
+    await c.init(connect: false);
+    await tester.pump();
+    expect(find.text('Выключено'), findsOneWidget);
+  });
+
   testWidgets('power button turns everything on', (tester) async {
     final c = Controller(
       backend: FakeBackend(),
