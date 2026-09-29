@@ -41,7 +41,11 @@ jobs:
       - run: flutter pub get
       - run: ./tools/fetch-engine.ps1
         shell: pwsh
-      - run: flutter build windows --release
+      - name: Build Windows application
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          flutter build windows --release --dart-define="PROSVET_VERSION=$version"
       - name: Build installer
         shell: pwsh
         run: |
