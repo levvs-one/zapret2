@@ -45,7 +45,7 @@ jobs:
         shell: pwsh
         run: |
           $version = $env:GITHUB_REF_NAME.TrimStart('v')
-          flutter build windows --release --dart-define="PROSVET_VERSION=$version"
+          flutter build windows --release --build-name="$version" --dart-define="PROSVET_VERSION=$version"
       - name: Build installer
         shell: pwsh
         run: |
