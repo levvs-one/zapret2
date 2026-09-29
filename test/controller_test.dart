@@ -151,6 +151,29 @@ void main() {
     );
   });
 
+  test('service toggle during startup is reconciled after start', () async {
+    await c.init(connect: false);
+    backend.calls.clear();
+    backend.smartDnsGate = Completer<void>();
+
+    final starting = c.start();
+    await pumpEventQueue(times: 10);
+    expect(c.power, Power.starting);
+    expect(backend.calls, contains('dpi yt=true dc=true'));
+
+    final disabling = c.setEnabled(Catalog.youtube, false);
+    backend.smartDnsGate!.complete();
+
+    await Future.wait([starting, disabling]);
+
+    expect(c.power, Power.on);
+    expect(c.isEnabled(Catalog.youtube), isFalse);
+    expect(
+      backend.calls,
+      containsAllInOrder(['dpi yt=true dc=true', 'dpi yt=false dc=true']),
+    );
+  });
+
   test('a second stop waits for the in-flight shutdown', () async {
     await c.init(connect: false);
     await c.start();
