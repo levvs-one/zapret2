@@ -104,7 +104,10 @@ jobs:
           echo "PROSVET_DOC_FONT=$font" >> "$GITHUB_ENV"
           echo "PROSVET_ICON_FONT=$icons" >> "$GITHUB_ENV"
       - run: flutter test tool/render_docs_test.dart
+      - name: Verify README screenshots are current
+        run: git diff --exit-code -- docs/off.png docs/on.png docs/settings.png
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
         with:
           name: prosvet-doc-screenshots
           path: |
