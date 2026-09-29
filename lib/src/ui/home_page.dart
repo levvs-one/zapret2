@@ -99,11 +99,11 @@ class _Status extends StatelessWidget {
     final status = !c.initialized
         ? 'Подготовка…'
         : switch (c.power) {
-      Power.off => 'Выключено',
-      Power.starting => 'Включаю…',
-      Power.stopping => 'Выключаю…',
-      Power.on when checking => 'Проверяю…',
-      Power.on when failing => 'Есть проблемы',
+            Power.off => 'Выключено',
+            Power.starting => 'Включаю…',
+            Power.stopping => 'Выключаю…',
+            Power.on when checking => 'Проверяю…',
+            Power.on when failing => 'Есть проблемы',
             Power.on => 'Включено',
           };
     final color = c.power == Power.on && !checking && !failing
