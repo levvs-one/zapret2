@@ -3,12 +3,15 @@
 #include <windows.h>
 #include <wchar.h>
 
+#include <algorithm>
+
 #include "flutter_window.h"
 #include "utils.h"
 
 namespace {
 
 constexpr wchar_t kSingleInstanceMutex[] = L"Global\\Prosvet.SingleInstance";
+constexpr wchar_t kReadyEvent[] = L"Global\\Prosvet.SingleInstance.Ready";
 constexpr wchar_t kWindowProperty[] = L"Prosvet.SingleInstance.Window";
 
 BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
@@ -19,23 +22,11 @@ BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
   return FALSE;
 }
 
-void BringExistingWindowToFront() {
+bool BringExistingWindowToFront() {
   HWND existing = nullptr;
-  // The mutex is created before the first Flutter window. A near-simultaneous
-  // second launch can therefore win this lookup by a few milliseconds.
-  for (int attempt = 0; attempt < 20 && existing == nullptr; ++attempt) {
-    ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
-    if (existing == nullptr) {
-      ::Sleep(50);
-    }
-  }
+  ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
   if (existing == nullptr) {
-    ::MessageBoxW(
-        nullptr,
-        L"Просвет уже запущен в другом сеансе Windows.",
-        L"Просвет",
-        MB_OK | MB_ICONINFORMATION);
-    return;
+    return false;
   }
   if (::IsIconic(existing)) {
     ::ShowWindow(existing, SW_RESTORE);
@@ -43,6 +34,7 @@ void BringExistingWindowToFront() {
     ::ShowWindow(existing, SW_SHOW);
   }
   ::SetForegroundWindow(existing);
+  return true;
 }
 
 // Keep this handle open for the lifetime of the process. Assigning Prosvet to a
@@ -72,15 +64,57 @@ HANDLE AttachKillOnCloseJob(DWORD* error) {
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
+  std::vector<std::string> command_line_arguments =
+      GetCommandLineArguments();
+  const bool background =
+      std::find(command_line_arguments.begin(), command_line_arguments.end(),
+                "--background") != command_line_arguments.end();
+
+  HANDLE ready_event =
+      ::CreateEventW(nullptr, TRUE, FALSE, kReadyEvent);
+  if (ready_event == nullptr) {
+    return EXIT_FAILURE;
+  }
+
   HANDLE single_instance =
       ::CreateMutexW(nullptr, TRUE, kSingleInstanceMutex);
   if (single_instance == nullptr) {
+    ::CloseHandle(ready_event);
     return EXIT_FAILURE;
   }
+
   if (::GetLastError() == ERROR_ALREADY_EXISTS) {
-    BringExistingWindowToFront();
-    ::CloseHandle(single_instance);
-    return EXIT_SUCCESS;
+    if (background) {
+      ::CloseHandle(single_instance);
+      ::CloseHandle(ready_event);
+      return EXIT_SUCCESS;
+    }
+
+    HANDLE startup_signals[] = {ready_event, single_instance};
+    const DWORD startup =
+        ::WaitForMultipleObjects(2, startup_signals, FALSE, 10000);
+    if (startup == WAIT_OBJECT_0 && BringExistingWindowToFront()) {
+      ::CloseHandle(single_instance);
+      ::CloseHandle(ready_event);
+      return EXIT_SUCCESS;
+    }
+
+    // If the mutex becomes available (or abandoned), the first process exited
+    // before publishing a usable window. This process now owns the mutex and
+    // can replace it immediately instead of throwing away the user's launch.
+    const bool replaced_primary =
+        startup == WAIT_OBJECT_0 + 1 || startup == WAIT_ABANDONED_0 + 1;
+    if (!replaced_primary) {
+      ::MessageBoxW(
+          nullptr,
+          L"Просвет уже запускается, но окно пока недоступно.",
+          L"Просвет",
+          MB_OK | MB_ICONINFORMATION);
+      ::CloseHandle(single_instance);
+      ::CloseHandle(ready_event);
+      return EXIT_FAILURE;
+    }
+    ::ResetEvent(ready_event);
   }
 
   // Intentionally not closed: Windows closes process handles on exit, which
@@ -97,6 +131,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::MessageBoxW(nullptr, message, L"Просвет", MB_OK | MB_ICONERROR);
     ::ReleaseMutex(single_instance);
     ::CloseHandle(single_instance);
+    ::CloseHandle(ready_event);
     return EXIT_FAILURE;
   }
   (void)process_job;
@@ -112,10 +147,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
 
   flutter::DartProject project(L"data");
-
-  std::vector<std::string> command_line_arguments =
-      GetCommandLineArguments();
-
   project.set_dart_entrypoint_arguments(std::move(command_line_arguments));
 
   FlutterWindow window(project);
@@ -125,12 +156,15 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::CoUninitialize();
     ::ReleaseMutex(single_instance);
     ::CloseHandle(single_instance);
+    ::CloseHandle(ready_event);
     return EXIT_FAILURE;
   }
+
   // The Dart side can change the visible title at runtime. A window property is
   // a stable cross-process identity for the second-launch path.
   ::SetPropW(window.GetHandle(), kWindowProperty,
              reinterpret_cast<HANDLE>(1));
+  ::SetEvent(ready_event);
   window.SetQuitOnClose(true);
 
   ::MSG msg;
@@ -142,5 +176,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   ::CoUninitialize();
   ::ReleaseMutex(single_instance);
   ::CloseHandle(single_instance);
+  ::CloseHandle(ready_event);
   return EXIT_SUCCESS;
 }

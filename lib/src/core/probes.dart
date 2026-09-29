@@ -30,6 +30,7 @@ Future<bool> _httpOk(HttpClient client, String url) async {
 }
 
 Future<bool> _smartDnsActive(Service s, List<String> dnsServers) async {
+  if (s.domains.isEmpty) return false;
   final domain = s.domains.first;
 
   // First ask the provider directly, then resolve the same name through the

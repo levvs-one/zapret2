@@ -16,7 +16,12 @@ import 'src/platform/autostart.dart';
 import 'src/platform/paths.dart';
 import 'src/platform/shell.dart';
 
-const version = '0.1.0';
+const version = String.fromEnvironment(
+  'PROSVET_VERSION',
+  defaultValue: '0.1.0',
+);
+
+bool shouldConnectAtStartup(Settings settings) => settings.connectOnLaunch;
 
 Future<void> main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +71,7 @@ Future<void> main(List<String> args) async {
     ),
   );
 
-  await controller.init(connect: background || settings.connectOnLaunch);
+  await controller.init(connect: shouldConnectAtStartup(settings));
 }
 
 void _registerLicenses() {

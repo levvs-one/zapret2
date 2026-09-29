@@ -139,6 +139,14 @@ class _ProsvetAppState extends State<ProsvetApp> with WindowListener {
     openLog: () {
       if (Platform.isWindows) Process.run('notepad.exe', [widget.logPath]);
     },
+    openIssues: () {
+      if (Platform.isWindows) {
+        Process.run('rundll32.exe', [
+          'url.dll,FileProtocolHandler',
+          'https://github.com/levvs-one/zapret2/issues/new/choose',
+        ]);
+      }
+    },
   );
 
   @override

@@ -41,7 +41,29 @@ jobs:
       - run: flutter pub get
       - run: ./tools/fetch-engine.ps1
         shell: pwsh
-      - run: flutter build windows --release
+      - name: Build Windows application
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          flutter build windows --release --build-name="$version" --dart-define="PROSVET_VERSION=$version"
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME.TrimStart('v')
+          choco install innosetup --version=6.7.1 -y --no-progress
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          & $iscc "/DMyAppVersion=$version" "installer\prosvet.iss"
+      - name: Smoke-test installer and uninstaller
+        shell: pwsh
+        run: |
+          $setup = Get-Item "installer\Output\Prosvet-*-Setup.exe"
+          $target = Join-Path $env:TEMP "ProsvetReleaseSmoke"
+          Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
+          if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
+          if (-not (Test-Path "$target\engine\winws2.exe")) { throw "installed engine is missing" }
+          $uninstall = Get-Item "$target\unins000.exe"
+          Start-Process $uninstall.FullName -ArgumentList "/VERYSILENT","/NORESTART" -Wait
+          if (Test-Path "$target\prosvet.exe") { throw "uninstall left the executable behind" }
       - name: Package
         shell: pwsh
         run: |
@@ -51,6 +73,8 @@ jobs:
           $name = "Prosvet-$($env:GITHUB_REF_NAME)-windows-x64.zip"
           Compress-Archive -Path "$bundle/*" -DestinationPath $name
           (Get-FileHash $name -Algorithm SHA256).Hash.ToLower() + "  $name" | Out-File -Encoding ascii "$name.sha256"
+          $setup = Get-Item "installer\Output\Prosvet-*-Setup.exe"
+          (Get-FileHash $setup.FullName -Algorithm SHA256).Hash.ToLower() + "  $($setup.Name)" | Out-File -Encoding ascii "$($setup.FullName).sha256"
       - name: Release notes
         shell: pwsh
         run: |
@@ -66,3 +90,5 @@ jobs:
           files: |
             Prosvet-*-windows-x64.zip
             Prosvet-*-windows-x64.zip.sha256
+            installer/Output/Prosvet-*-Setup.exe
+            installer/Output/Prosvet-*-Setup.exe.sha256

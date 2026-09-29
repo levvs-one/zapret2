@@ -70,8 +70,10 @@ class Settings {
   }
 
   static Settings load(String file) {
+    final settingsFile = File(file);
+    final existed = settingsFile.existsSync();
     try {
-      final j = jsonDecode(File(file).readAsStringSync());
+      final j = jsonDecode(settingsFile.readAsStringSync());
       if (j is Map<String, Object?>) {
         final settings = fromJson(j);
         if (!_validSecret(j['telegramSecret'])) {
@@ -83,14 +85,18 @@ class Settings {
       }
     } catch (_) {}
 
-    // The Telegram proxy secret is part of the client configuration. Persist a
-    // generated default immediately so a restart cannot silently rotate it.
     final defaults = Settings.defaults();
-    try {
-      defaults.save(file);
-    } catch (_) {
-      // Startup must still work if the settings directory is temporarily
-      // unwritable. A later explicit settings change will retry the save.
+    if (!existed) {
+      // The Telegram proxy secret is part of the client configuration. Persist
+      // first-launch defaults immediately so a restart cannot silently rotate
+      // it. Never overwrite an existing file merely because reading/parsing it
+      // failed; preserving user data beats "helpfully" replacing it.
+      try {
+        defaults.save(file);
+      } catch (_) {
+        // Startup must still work if the settings directory is temporarily
+        // unwritable. A later explicit settings change will retry the save.
+      }
     }
     return defaults;
   }

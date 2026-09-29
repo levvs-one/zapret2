@@ -88,7 +88,7 @@ Future<Set<String>?> queryDnsServer(
   RawDatagramSocket? socket;
   StreamSubscription<RawSocketEvent>? sub;
   try {
-    final id = Random.secure().nextInt(0xffff);
+    final id = Random.secure().nextInt(0x10000);
     final expectedServer = InternetAddress(server);
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 0);
     final done = Completer<Set<String>?>();

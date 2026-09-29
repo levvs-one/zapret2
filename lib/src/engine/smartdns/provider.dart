@@ -17,7 +17,7 @@ class SmartDnsProvider {
     id: 'xbox-dns',
     title: 'Xbox DNS',
     website: 'https://xbox-dns.ru',
-    servers: ['111.88.96.50', '111.88.96.51'],
+    servers: ['111.88.96.54', '111.88.96.55'],
   );
 
   static const all = [xboxDns];
