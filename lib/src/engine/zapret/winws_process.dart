@@ -58,7 +58,9 @@ class WinwsProcess {
     );
     if (early != -1) {
       _process = null;
-      throw StateError('Движок не запустился. Попробуйте включить Просвет снова.');
+      throw StateError(
+        'Движок не запустился. Попробуйте включить Просвет снова.',
+      );
     }
     unawaited(
       p.exitCode.then((code) {
