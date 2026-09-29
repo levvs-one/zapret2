@@ -34,6 +34,7 @@ class _PowerButtonState extends State<PowerButton> {
       button: true,
       toggled: on,
       label: on ? 'Выключить' : 'Включить',
+      excludeSemantics: true,
       child: FocusableActionDetector(
         enabled: widget.onPressed != null,
         mouseCursor: widget.onPressed == null
