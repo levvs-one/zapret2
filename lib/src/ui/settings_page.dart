@@ -113,6 +113,7 @@ class _StartupPage extends StatefulWidget {
 
 class _StartupPageState extends State<_StartupPage> {
   bool? _autostart;
+  bool _autostartBusy = false;
 
   @override
   void initState() {
@@ -124,8 +125,11 @@ class _StartupPageState extends State<_StartupPage> {
 
   Future<void> _setAutostart(bool value) async {
     final autostart = widget.autostart;
-    if (autostart == null) return;
-    setState(() => _autostart = value);
+    if (autostart == null || _autostartBusy) return;
+    setState(() {
+      _autostart = value;
+      _autostartBusy = true;
+    });
     try {
       await autostart.setEnabled(value);
     } catch (e) {
@@ -134,6 +138,8 @@ class _StartupPageState extends State<_StartupPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Не удалось изменить автозапуск: $e')),
       );
+    } finally {
+      if (mounted) setState(() => _autostartBusy = false);
     }
   }
 
@@ -148,7 +154,10 @@ class _StartupPageState extends State<_StartupPage> {
             SwitchListTile(
               title: const Text('Вместе с Windows'),
               value: _autostart ?? false,
-              onChanged: widget.autostart == null || _autostart == null
+              onChanged:
+                  widget.autostart == null ||
+                      _autostart == null ||
+                      _autostartBusy
                   ? null
                   : _setAutostart,
             ),
