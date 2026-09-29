@@ -17,9 +17,12 @@ import 'probes.dart';
 class WindowsBackend implements Backend {
   WindowsBackend(this.paths, this.shell, this.log)
     : _winws = WinwsProcess(executable: paths.winws, onLog: log.write) {
-    _winws.unexpectedExit.listen(
-      (code) => _faults.add('Движок остановился (код $code)\n${_winws.tail}'),
-    );
+    _winws.unexpectedExit.listen((code) {
+      log.write('winws2 exited unexpectedly with code $code');
+      final tail = _winws.tail.trim();
+      if (tail.isNotEmpty) log.write(tail);
+      _faults.add('Движок остановился. Попробуйте включить Просвет снова.');
+    });
   }
 
   final AppPaths paths;
@@ -34,12 +37,12 @@ class WindowsBackend implements Backend {
 
   @override
   Future<String?> unsupportedReason() async {
-    if (!Platform.isWindows) return 'Prosvet работает в Windows 10 и 11.';
+    if (!Platform.isWindows) return 'Просвет работает в Windows 10 и 11.';
     if (!File(paths.winws).existsSync()) {
-      return 'Не найдена папка engine рядом с программой. Переустановите Prosvet.';
+      return 'Не найдена папка engine рядом с программой. Переустановите Просвет.';
     }
     final admin = await shell.run('net.exe', ['session']);
-    if (!admin.ok) return 'Запустите Prosvet от имени администратора.';
+    if (!admin.ok) return 'Запустите Просвет от имени администратора.';
     return null;
   }
 
