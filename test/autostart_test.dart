@@ -33,6 +33,7 @@ class _BlockingShell extends _FakeShell {
     return const ShellResult(0, '', '');
   }
 }
+
 void main() {
   test(
     'autostart creates one elevated background task with quoted exe',
@@ -80,6 +81,7 @@ void main() {
     shell.gates[1].complete();
     await Future.wait([enable, disable]);
   });
+
   test('autostart deletion removes the same scheduled task', () async {
     final shell = _FakeShell();
     final autostart = Autostart(shell, r'C:\Prosvet\prosvet.exe');
