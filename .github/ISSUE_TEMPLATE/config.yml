@@ -1,1 +1,5 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Безопасность
+    url: https://github.com/levvs-one/zapret2/blob/main/SECURITY.md
+    about: Не публикуйте рабочие эксплойты в обычных Issues.
