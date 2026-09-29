@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prosvet/src/platform/autostart.dart';
 import 'package:prosvet/src/platform/shell.dart';
@@ -19,6 +21,18 @@ class _FakeShell implements Shell {
   }
 }
 
+class _BlockingShell extends _FakeShell {
+  final gates = <Completer<void>>[];
+
+  @override
+  Future<ShellResult> run(String executable, List<String> args) async {
+    calls.add((executable: executable, args: List.of(args)));
+    final gate = Completer<void>();
+    gates.add(gate);
+    await gate.future;
+    return const ShellResult(0, '', '');
+  }
+}
 void main() {
   test(
     'autostart creates one elevated background task with quoted exe',
@@ -46,6 +60,26 @@ void main() {
     },
   );
 
+  test('autostart writes are serialized in click order', () async {
+    final shell = _BlockingShell();
+    final autostart = Autostart(shell, r'C:\Prosvet\prosvet.exe');
+
+    final enable = autostart.setEnabled(true);
+    await pumpEventQueue();
+    expect(shell.calls, hasLength(1));
+
+    final disable = autostart.setEnabled(false);
+    await pumpEventQueue();
+    expect(shell.calls, hasLength(1));
+
+    shell.gates[0].complete();
+    await pumpEventQueue();
+    expect(shell.calls, hasLength(2));
+    expect(shell.calls[1].args, ['/Delete', '/TN', 'Prosvet', '/F']);
+
+    shell.gates[1].complete();
+    await Future.wait([enable, disable]);
+  });
   test('autostart deletion removes the same scheduled task', () async {
     final shell = _FakeShell();
     final autostart = Autostart(shell, r'C:\Prosvet\prosvet.exe');
