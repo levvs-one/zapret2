@@ -47,7 +47,9 @@ class HomePage extends StatelessWidget {
                   Center(
                     child: PowerButton(
                       power: c.power,
-                      onPressed: c.unsupported == null ? c.toggle : null,
+                      onPressed: c.initialized && c.unsupported == null
+                          ? c.toggle
+                          : null,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -94,14 +96,16 @@ class _Status extends StatelessWidget {
     final c = controller;
     final checking = c.health.values.contains(Health.checking);
     final failing = c.health.values.any((h) => h == Health.failing);
-    final status = switch (c.power) {
+    final status = !c.initialized
+        ? 'Подготовка…'
+        : switch (c.power) {
       Power.off => 'Выключено',
       Power.starting => 'Включаю…',
       Power.stopping => 'Выключаю…',
       Power.on when checking => 'Проверяю…',
       Power.on when failing => 'Есть проблемы',
-      Power.on => 'Включено',
-    };
+            Power.on => 'Включено',
+          };
     final color = c.power == Power.on && !checking && !failing
         ? t.colorScheme.positive
         : failing
