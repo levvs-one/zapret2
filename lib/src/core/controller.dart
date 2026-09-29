@@ -131,8 +131,11 @@ class Controller extends ChangeNotifier {
     saveSettings(settings);
     health[s.id] = Health.idle;
     notifyListeners();
-    if (power != Power.on) return;
+    if (power == Power.off || power == Power.stopping) return;
 
+    // If a toggle happens while start() owns the operation queue, enqueue the
+    // mechanism reconciliation behind it. When this action runs, startup has
+    // either reached Power.on or invalidated the lifecycle generation.
     final lifecycleGen = _lifecycleGeneration;
     final healthGen = ++_healthGeneration;
     try {
