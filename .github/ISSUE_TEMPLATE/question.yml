@@ -1,0 +1,26 @@
+name: Вопрос / помощь
+description: Не уверены, это баг или настройка — начните здесь
+labels: [question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Перед отправкой проверьте [FAQ](https://github.com/levvs-one/zapret2/blob/main/docs/faq.md) и [диагностику](https://github.com/levvs-one/zapret2/blob/main/docs/troubleshooting.md).
+        Не публикуйте пароли, cookies, токены, IP-адреса и другие чувствительные данные.
+  - type: textarea
+    id: question
+    attributes:
+      label: Что хотите понять или настроить
+      placeholder: Опишите цель и что уже попробовали.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия Просвета и Windows
+      placeholder: 0.2.0, Windows 11 24H2
+  - type: input
+    id: network
+    attributes:
+      label: Провайдер / тип сети, если вопрос про доступ
+      placeholder: Домашний интернет / мобильная сеть
