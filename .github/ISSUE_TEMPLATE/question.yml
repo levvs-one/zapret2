@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Перед отправкой проверьте [FAQ](../../docs/faq.md) и [диагностику](../../docs/troubleshooting.md).
+        Перед отправкой проверьте [FAQ](https://github.com/levvs-one/zapret2/blob/main/docs/faq.md) и [диагностику](https://github.com/levvs-one/zapret2/blob/main/docs/troubleshooting.md).
         Не публикуйте пароли, cookies, токены, IP-адреса и другие чувствительные данные.
   - type: textarea
     id: question
