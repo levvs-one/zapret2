@@ -1,0 +1,38 @@
+name: Не работает
+description: Сервис не открывается или Просвет ведёт себя странно
+labels: [bug]
+body:
+  - type: dropdown
+    id: service
+    attributes:
+      label: Что не работает
+      multiple: true
+      options: [YouTube, Discord, Telegram, Gemini / AI Studio / Antigravity, ChatGPT, Claude, Copilot, Spotify, Само приложение]
+    validations:
+      required: true
+  - type: input
+    id: isp
+    attributes:
+      label: Провайдер и тип подключения
+      description: Домашний интернет или мобильная сеть — этого достаточно. Город указывать не нужно.
+      placeholder: Ростелеком, домашний / МТС, мобильный
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Что происходит
+      placeholder: Включил, YouTube отмечен красным, видео не грузится.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия Просвета и Windows
+      placeholder: 0.1.0, Windows 11 24H2
+  - type: textarea
+    id: log
+    attributes:
+      label: Журнал
+      description: Настройки → О программе → Журнал. Вставьте последние строки.
+      render: text
