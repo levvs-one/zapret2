@@ -1,19 +1,25 @@
 # Безопасность
 
-Просвет запускается с правами администратора, потому что WinDivert и Windows NRPT работают на системном уровне. Это делает безопасность релизов важнее обычного desktop-приложения.
+`zapret2` работает с системным сетевым состоянием Windows: WinDivert, NRPT и Task Scheduler. Поэтому release pipeline рассматривает install/uninstall и cleanup как часть безопасности, а не как упаковку после сборки.
 
-## Что защищает релиз
+## Release integrity
 
-- версия zapret2 зафиксирована, скачанный архив проверяется по SHA-256;
-- CI прогоняет форматирование, анализатор, тесты, parser dry-run zapret2 и Windows release build;
-- Setup.exe собирается в CI и проходит автоматический install/uninstall smoke-test;
-- релизы публикуются вместе с SHA-256 для Setup.exe и portable ZIP;
-- `winws2.exe` привязан к Windows Job Object и завершается вместе с Просветом;
-- приложение допускает только один системный экземпляр;
-- NRPT-правила помечаются как `Prosvet` и удаляются при выключении, следующем запуске после сбоя и uninstall.
+- версия upstream zapret2 зафиксирована;
+- скачанный engine archive проверяется по SHA-256;
+- CI запускает format, analyzer, tests и parser dry-run командной строки zapret2;
+- Windows release build собирается в чистом GitHub Actions runner;
+- Setup проходит автоматический silent install/uninstall smoke-test;
+- релиз содержит Setup, portable ZIP и единый `SHA256SUMS.txt`;
+- дочерний `winws2.exe` привязан к kill-on-close Windows Job Object;
+- приложение использует single-instance guard;
+- собственные NRPT rules удаляются при stop, startup cleanup и uninstall.
+
+## Compatibility identifiers
+
+Публичное имя проекта — `zapret2`. Несколько старых системных идентификаторов `Prosvet` пока сохраняются намеренно: scheduled task, NRPT comment и local state namespace. Это позволяет обновляться поверх 0.2 без потери cleanup state и настроек.
 
 ## Сообщить об уязвимости
 
-Не публикуйте рабочий exploit в обычном issue. Напишите владельцу репозитория через GitHub с минимальным воспроизводимым описанием: версия Просвета, версия Windows, затронутый компонент и шаги воспроизведения.
+Не публикуйте рабочий exploit или чувствительные данные в обычном issue. Передайте владельцу репозитория минимальное воспроизводимое описание: версия zapret2, версия Windows, затронутый компонент, влияние и шаги воспроизведения.
 
 Для обычных багов используйте Issues.
