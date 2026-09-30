@@ -1,1 +1,8 @@
 blank_issues_enabled: false
+contact_links:
+  - name: Сначала проверьте типовые проблемы
+    url: https://github.com/levvs-one/zapret2/blob/main/docs/troubleshooting.md
+    about: Secure DNS, конфликтующий VPN/zapret, регион аккаунта и другие частые случаи.
+  - name: Сообщить об уязвимости
+    url: https://github.com/levvs-one/zapret2/blob/main/SECURITY.md
+    about: Не публикуйте рабочий exploit в обычном issue.
