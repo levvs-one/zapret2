@@ -30,9 +30,9 @@ class HomePage extends StatelessWidget {
               IconButton(
                 tooltip: 'Настройки',
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => settingsPage()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute<void>(builder: (_) => settingsPage())),
               ),
               const SizedBox(width: 8),
             ],
@@ -131,9 +131,7 @@ class _PowerPanel extends StatelessWidget {
                 status,
                 key: ValueKey(status),
                 textAlign: TextAlign.center,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: statusColor,
-                ),
+                style: theme.textTheme.titleLarge?.copyWith(color: statusColor),
               ),
             ),
             const SizedBox(height: 4),
