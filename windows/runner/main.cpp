@@ -14,7 +14,7 @@ constexpr wchar_t kSingleInstanceMutex[] = L"Global\\Prosvet.SingleInstance";
 constexpr wchar_t kReadyEvent[] = L"Global\\Prosvet.SingleInstance.Ready";
 constexpr wchar_t kWindowProperty[] = L"Prosvet.SingleInstance.Window";
 
-BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
+BOOL CALLBACK FindZapret2Window(HWND window, LPARAM result_ptr) {
   if (::GetPropW(window, kWindowProperty) == nullptr) {
     return TRUE;
   }
@@ -24,7 +24,7 @@ BOOL CALLBACK FindProsvetWindow(HWND window, LPARAM result_ptr) {
 
 bool BringExistingWindowToFront() {
   HWND existing = nullptr;
-  ::EnumWindows(FindProsvetWindow, reinterpret_cast<LPARAM>(&existing));
+  ::EnumWindows(FindZapret2Window, reinterpret_cast<LPARAM>(&existing));
   if (existing == nullptr) {
     return false;
   }
@@ -37,7 +37,7 @@ bool BringExistingWindowToFront() {
   return true;
 }
 
-// Keep this handle open for the lifetime of the process. Assigning Prosvet to a
+// Keep this handle open for the lifetime of the process. Assigning zapret2 to a
 // kill-on-close job makes child processes (notably winws2.exe) die if the GUI
 // is terminated without getting a chance to run its normal shutdown path.
 HANDLE AttachKillOnCloseJob(DWORD* error) {
@@ -107,8 +107,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     if (!replaced_primary) {
       ::MessageBoxW(
           nullptr,
-          L"Просвет уже запускается, но окно пока недоступно.",
-          L"Просвет",
+          L"zapret2 уже запускается, но окно пока недоступно.",
+          L"zapret2",
           MB_OK | MB_ICONINFORMATION);
       ::CloseHandle(single_instance);
       ::CloseHandle(ready_event);
@@ -126,9 +126,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::swprintf_s(
         message,
         L"Не удалось включить безопасное управление дочерними процессами "
-        L"(ошибка Windows %lu). Просвет не будет запущен.",
+        L"(ошибка Windows %lu). zapret2 не будет запущен.",
         job_error);
-    ::MessageBoxW(nullptr, message, L"Просвет", MB_OK | MB_ICONERROR);
+    ::MessageBoxW(nullptr, message, L"zapret2", MB_OK | MB_ICONERROR);
     ::ReleaseMutex(single_instance);
     ::CloseHandle(single_instance);
     ::CloseHandle(ready_event);
@@ -152,7 +152,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   FlutterWindow window(project);
   Win32Window::Point origin(10, 10);
   Win32Window::Size size(1280, 720);
-  if (!window.Create(L"Prosvet", origin, size)) {
+  if (!window.Create(L"zapret2", origin, size)) {
     ::CoUninitialize();
     ::ReleaseMutex(single_instance);
     ::CloseHandle(single_instance);
