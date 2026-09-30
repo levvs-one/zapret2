@@ -18,7 +18,7 @@ import 'src/platform/shell.dart';
 
 const version = String.fromEnvironment(
   'PROSVET_VERSION',
-  defaultValue: '0.1.0',
+  defaultValue: '0.2.0',
 );
 
 bool shouldConnectAtStartup(Settings settings) => settings.connectOnLaunch;
@@ -47,8 +47,8 @@ Future<void> main(List<String> args) async {
   await windowManager.waitUntilReadyToShow(
     const WindowOptions(
       title: 'Просвет',
-      size: Size(440, 780),
-      minimumSize: Size(380, 560),
+      size: Size(460, 760),
+      minimumSize: Size(400, 600),
       center: true,
     ),
     () async {
