@@ -16,7 +16,8 @@ Windows-клиент поверх zapret2, Smart DNS и локального Tel
 [Установка](docs/getting-started.md) ·
 [Чем отличается от zapret2](docs/prosvet-vs-zapret2.md) ·
 [FAQ](docs/faq.md) ·
-[Диагностика](docs/troubleshooting.md)
+[Диагностика](docs/troubleshooting.md) ·
+[Поддержка](SUPPORT.md)
 
 </div>
 
@@ -199,8 +200,9 @@ Release workflow публикует:
 | **[FAQ](docs/faq.md)** | VPN, регионы аккаунтов, Telegram, безопасность, обновления |
 | **[Диагностика](docs/troubleshooting.md)** | типовые проблемы и что приложить к issue |
 | **[Архитектура](docs/architecture.md)** | lifecycle и устройство движков |
-| **[Security](SECURITY.md)** | модель безопасности и проверка релизов |
+| **[Security](SECURITY.md)** | модель безопасности, release integrity и reporting |
 | **[Privacy](PRIVACY.md)** | что хранится локально и что уходит в сеть |
+| **[Support](SUPPORT.md)** | куда идти с багом, DPI-отчётом, новым сервисом или вопросом |
 | **[Contributing](CONTRIBUTING.md)** | разработка, тесты и правила PR |
 | **[Changelog](CHANGELOG.md)** | изменения по версиям |
 
@@ -252,6 +254,7 @@ flutter build windows --release
 [Releases](https://github.com/levvs-one/zapret2/releases/latest) ·
 [Issues](https://github.com/levvs-one/zapret2/issues) ·
 [Security](SECURITY.md) ·
+[Support](SUPPORT.md) ·
 [Changelog](CHANGELOG.md)
 
 </div>
