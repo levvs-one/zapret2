@@ -1,0 +1,47 @@
+name: Отчёт о DPI-стратегии
+description: Сообщить, что YouTube/Discord работает или не работает у конкретного провайдера
+labels: [strategy]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Такие отчёты помогают обновлять порядок стратегий без гадания. Не публикуйте IP-адрес, точный адрес или другие персональные данные.
+  - type: dropdown
+    id: service
+    attributes:
+      label: Сервис
+      multiple: true
+      options:
+        - YouTube
+        - Discord
+    validations:
+      required: true
+  - type: input
+    id: isp
+    attributes:
+      label: Провайдер и тип подключения
+      description: Домашний интернет или мобильная сеть. Город не нужен.
+      placeholder: Ростелеком, домашний
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Версия Просвета и Windows
+      placeholder: 0.2.0, Windows 11 24H2
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Результат
+      description: Что именно работает или ломается, после какого действия, стабильно ли воспроизводится.
+      placeholder: После включения YouTube открывается, 4K идёт без буферизации; Discord voice тоже работает.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Журнал, если есть проблема
+      description: Настройки → О программе → Журнал. Достаточно последних релевантных строк.
+      render: text
