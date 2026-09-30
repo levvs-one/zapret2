@@ -1,7 +1,7 @@
-name: prosvet
-description: "Просвет — локальный Windows-клиент для точечного доступа к сервисам без системного VPN."
+name: zapret2
+description: "zapret2 — локальный Windows-клиент для точечного доступа к сервисам без системного VPN."
 publish_to: 'none'
-version: 0.2.0+2
+version: 0.3.0+3
 
 environment:
   sdk: ^3.13.0
