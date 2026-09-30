@@ -79,7 +79,7 @@ jobs:
           $version = (Get-Content VERSION -Raw).Trim()
           choco install innosetup --version=6.7.1 -y --no-progress
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          & $iscc "/DMyAppVersion=$version" "installer\prosvet.iss"
+          & $iscc "/DMyAppVersion=$version" "installer\zapret2.iss"
       - name: Smoke-test installer and uninstaller
         shell: pwsh
         run: |
