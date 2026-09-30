@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "levvs-one" "\0"
-            VALUE "FileDescription", "Prosvet" "\0"
+            VALUE "FileDescription", "zapret2" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "prosvet" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 levvs-one. MIT License." "\0"
             VALUE "OriginalFilename", "prosvet.exe" "\0"
-            VALUE "ProductName", "Prosvet" "\0"
+            VALUE "ProductName", "zapret2" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
