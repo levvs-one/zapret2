@@ -2,11 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Quiet grouped surface shared by the home screen and settings.
 class Section extends StatelessWidget {
-  const Section({
-    super.key,
-    required this.children,
-    this.label,
-  });
+  const Section({super.key, required this.children, this.label});
 
   final List<Widget> children;
   final String? label;
