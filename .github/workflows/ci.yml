@@ -34,11 +34,7 @@ jobs:
         run: |
           version="$(tr -d '\r\n' < VERSION)"
           grep -q "^version: $version+" pubspec.yaml
-      - name: Verify Dart formatting
-        shell: bash
-        run: |
-          dart format lib test tool tools
-          git diff --exit-code -- lib test tool tools
+      - run: dart format --output=none --set-exit-if-changed lib test tool tools
       - run: flutter analyze
       - run: flutter test
 
