@@ -27,8 +27,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Версия Просвета и Windows
-      placeholder: 0.2.0, Windows 11 24H2
+      label: Версия zapret2 и Windows
+      placeholder: 0.3.0, Windows 11 24H2
     validations:
       required: true
   - type: textarea
