@@ -1,7 +1,7 @@
 name: prosvet
-description: "Просвет: YouTube, Discord, Telegram и нейросети без VPN. Windows-клиент на движке zapret2."
+description: "Просвет — локальный Windows-клиент для точечного доступа к сервисам без системного VPN."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ^3.13.0
