@@ -3,7 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/src/engine/zapret/winws_args.dart';
+import 'package:zapret2/src/engine/zapret/winws_args.dart';
 
 void main() {
   test('dump winws2 arguments', () {
