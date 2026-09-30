@@ -26,6 +26,8 @@ class _PowerButtonState extends State<PowerButton> {
         widget.power == Power.starting || widget.power == Power.stopping;
 
     return Semantics(
+      container: true,
+      explicitChildNodes: true,
       button: true,
       toggled: on,
       label: on ? 'Выключить' : 'Включить',
