@@ -72,7 +72,7 @@ jobs:
         shell: pwsh
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
-          flutter build windows --release --build-name="$version" --dart-define="PROSVET_VERSION=$version"
+          flutter build windows --release --build-name="$version" --dart-define="ZAPRET2_VERSION=$version"
       - name: Build installer
         shell: pwsh
         run: |
@@ -83,8 +83,8 @@ jobs:
       - name: Smoke-test installer and uninstaller
         shell: pwsh
         run: |
-          $setup = Get-Item "installer\Output\Prosvet-*-Setup.exe"
-          $target = Join-Path $env:TEMP "ProsvetInstallSmoke"
+          $setup = Get-Item "installer\Output\zapret2-*-Setup.exe"
+          $target = Join-Path $env:TEMP "zapret2InstallSmoke"
           Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
           if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
           if (-not (Test-Path "$target\engine\winws2.exe")) { throw "installed engine is missing" }
@@ -97,13 +97,13 @@ jobs:
           $version = (Get-Content VERSION -Raw).Trim()
           $bundle = "build/windows/x64/runner/Release"
           Copy-Item LICENSE,THIRD_PARTY_NOTICES.md $bundle
-          Compress-Archive -Path "$bundle/*" -DestinationPath "Prosvet-$version-windows-x64.zip"
+          Compress-Archive -Path "$bundle/*" -DestinationPath "zapret2-$version-windows-x64.zip"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: Prosvet-windows-x64
+          name: zapret2-windows-x64
           path: |
-            Prosvet-*-windows-x64.zip
-            installer/Output/Prosvet-*-Setup.exe
+            zapret2-*-windows-x64.zip
+            installer/Output/zapret2-*-Setup.exe
           if-no-files-found: error
           retention-days: 14
 
@@ -126,13 +126,13 @@ jobs:
           test -f "$font"
           icons="$FLUTTER_ROOT/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf"
           test -f "$icons"
-          echo "PROSVET_DOC_FONT=$font" >> "$GITHUB_ENV"
-          echo "PROSVET_ICON_FONT=$icons" >> "$GITHUB_ENV"
+          echo "ZAPRET2_DOC_FONT=$font" >> "$GITHUB_ENV"
+          echo "ZAPRET2_ICON_FONT=$icons" >> "$GITHUB_ENV"
       - name: Render UI reference snapshots
         run: flutter test tool/render_docs_test.dart
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: prosvet-ui-snapshots
+          name: zapret2-ui-snapshots
           path: |
             docs/off.png
             docs/on.png
