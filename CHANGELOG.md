@@ -1,5 +1,20 @@
 # Что нового
 
+## 0.3.0 — 2026-09-30
+
+### Бренд и интерфейс
+
+- Публичное имя проекта унифицировано: **zapret2** в приложении, installer, release artifacts и документации.
+- Сохранены legacy Windows identifiers там, где их смена могла бы сломать бесшовное обновление.
+- README полностью пересобран как продуктовая страница: назначение, screenshots, architecture, release discipline и ограничения без маркетингового шума.
+
+### Репозиторий
+
+- Dart package переименован в `zapret2`; internal package imports приведены к одному namespace.
+- Release artifacts публикуются как `zapret2-<version>-Setup.exe` и `zapret2-<version>-windows-x64.zip`.
+- Документация и issue templates синхронизированы с публичным названием проекта.
+
+
 ## 0.2.0 — 2026-09-30
 
 ### Интерфейс
