@@ -29,7 +29,7 @@ class SettingsPage extends StatelessWidget {
     return _SettingsScaffold(
       title: 'Настройки',
       child: Section(
-        label: 'Просвет',
+        label: 'zapret2',
         children: [
           _MenuTile(
             icon: Icons.power_settings_new_rounded,
@@ -138,7 +138,7 @@ class _StartupPageState extends State<_StartupPage> {
           children: [
             SwitchListTile(
               title: const Text('Вместе с Windows'),
-              subtitle: const Text('Запускать Просвет после входа в систему'),
+              subtitle: const Text('Запускать zapret2 после входа в систему'),
               value: _autostart ?? false,
               onChanged: widget.autostart == null || _autostart == null
                   ? null
@@ -223,7 +223,7 @@ class _AboutPage extends StatelessWidget {
             label: 'Приложение',
             children: [
               ListTile(
-                title: const Text('Просвет'),
+                title: const Text('zapret2'),
                 subtitle: const Text('Локальный Windows-клиент'),
                 trailing: Text(version),
               ),
@@ -251,7 +251,7 @@ class _AboutPage extends StatelessWidget {
                 trailing: const Icon(Icons.chevron_right_rounded),
                 onTap: () => showLicensePage(
                   context: context,
-                  applicationName: 'Просвет',
+                  applicationName: 'zapret2',
                   applicationVersion: version,
                 ),
               ),
