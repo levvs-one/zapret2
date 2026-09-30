@@ -26,50 +26,40 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Настройки')),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
-            children: [
-              Section(
-                children: [
-                  _MenuTile(
-                    icon: Icons.power_settings_new_rounded,
-                    title: 'Запуск',
-                    onTap: () => _open(
-                      context,
-                      _StartupPage(
-                        controller: controller,
-                        autostart: autostart,
-                      ),
-                    ),
-                  ),
-                  _MenuTile(
-                    icon: Icons.language_rounded,
-                    title: 'Сеть',
-                    onTap: () =>
-                        _open(context, _NetworkPage(controller: controller)),
-                  ),
-                  _MenuTile(
-                    icon: Icons.info_outline_rounded,
-                    title: 'О программе',
-                    onTap: () => _open(
-                      context,
-                      _AboutPage(
-                        version: version,
-                        openLog: openLog,
-                        openIssues: openIssues,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+    return _SettingsScaffold(
+      title: 'Настройки',
+      child: Section(
+        label: 'Просвет',
+        children: [
+          _MenuTile(
+            icon: Icons.power_settings_new_rounded,
+            title: 'Запуск',
+            subtitle: 'Автозапуск и включение при входе',
+            onTap: () => _open(
+              context,
+              _StartupPage(controller: controller, autostart: autostart),
+            ),
           ),
-        ),
+          _MenuTile(
+            icon: Icons.language_rounded,
+            title: 'Сеть',
+            subtitle: 'Smart DNS и повторная проверка',
+            onTap: () => _open(context, _NetworkPage(controller: controller)),
+          ),
+          _MenuTile(
+            icon: Icons.info_outline_rounded,
+            title: 'О программе',
+            subtitle: 'Версия, журнал и лицензии',
+            onTap: () => _open(
+              context,
+              _AboutPage(
+                version: version,
+                openLog: openLog,
+                openIssues: openIssues,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -79,11 +69,13 @@ class _MenuTile extends StatelessWidget {
   const _MenuTile({
     required this.icon,
     required this.title,
+    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
@@ -92,10 +84,8 @@ class _MenuTile extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: colors.onSurfaceVariant),
       title: Text(title),
-      trailing: Icon(
-        Icons.chevron_right_rounded,
-        color: colors.onSurfaceVariant,
-      ),
+      subtitle: Text(subtitle),
+      trailing: Icon(Icons.chevron_right_rounded, color: colors.outline),
       onTap: onTap,
     );
   }
@@ -144,9 +134,11 @@ class _StartupPageState extends State<_StartupPage> {
       builder: (context, _) => _SettingsScaffold(
         title: 'Запуск',
         child: Section(
+          label: 'Поведение',
           children: [
             SwitchListTile(
               title: const Text('Вместе с Windows'),
+              subtitle: const Text('Запускать Просвет после входа в систему'),
               value: _autostart ?? false,
               onChanged: widget.autostart == null || _autostart == null
                   ? null
@@ -154,6 +146,7 @@ class _StartupPageState extends State<_StartupPage> {
             ),
             SwitchListTile(
               title: const Text('Включать сразу'),
+              subtitle: const Text('Применять выбранные правила после запуска'),
               value: widget.controller.settings.connectOnLaunch,
               onChanged: widget.controller.setConnectOnLaunch,
             ),
@@ -171,6 +164,7 @@ class _NetworkPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) => _SettingsScaffold(
@@ -178,26 +172,27 @@ class _NetworkPage extends StatelessWidget {
         child: Column(
           children: [
             Section(
+              label: 'Разрешение имён',
               children: [
                 ListTile(
                   title: const Text('Smart DNS'),
+                  subtitle: const Text('Только для выбранных доменов'),
                   trailing: Text(
                     controller.dnsProvider.title,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                    style: TextStyle(color: colors.onSurfaceVariant),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             SizedBox(
               width: double.infinity,
-              child: FilledButton.tonal(
+              child: FilledButton.tonalIcon(
                 onPressed: controller.power == Power.on
                     ? controller.recheck
                     : null,
-                child: const Text('Проверить сервисы'),
+                icon: const Icon(Icons.refresh_rounded, size: 19),
+                label: const Text('Проверить сервисы'),
               ),
             ),
           ],
@@ -222,27 +217,45 @@ class _AboutPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return _SettingsScaffold(
       title: 'О программе',
-      child: Section(
+      child: Column(
         children: [
-          ListTile(title: const Text('Версия'), trailing: Text(version)),
-          ListTile(
-            title: const Text('Журнал'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: openLog,
+          Section(
+            label: 'Приложение',
+            children: [
+              ListTile(
+                title: const Text('Просвет'),
+                subtitle: const Text('Локальный Windows-клиент'),
+                trailing: Text(version),
+              ),
+            ],
           ),
-          ListTile(
-            title: const Text('Сообщить о проблеме'),
-            trailing: const Icon(Icons.open_in_new_rounded, size: 20),
-            onTap: openIssues,
-          ),
-          ListTile(
-            title: const Text('Лицензии'),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => showLicensePage(
-              context: context,
-              applicationName: 'Просвет',
-              applicationVersion: version,
-            ),
+          const SizedBox(height: 14),
+          Section(
+            label: 'Диагностика',
+            children: [
+              ListTile(
+                leading: const Icon(Icons.description_outlined),
+                title: const Text('Журнал'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: openLog,
+              ),
+              ListTile(
+                leading: const Icon(Icons.bug_report_outlined),
+                title: const Text('Сообщить о проблеме'),
+                trailing: const Icon(Icons.open_in_new_rounded, size: 20),
+                onTap: openIssues,
+              ),
+              ListTile(
+                leading: const Icon(Icons.balance_outlined),
+                title: const Text('Лицензии'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => showLicensePage(
+                  context: context,
+                  applicationName: 'Просвет',
+                  applicationVersion: version,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -262,9 +275,9 @@ class _SettingsScaffold extends StatelessWidget {
       appBar: AppBar(title: Text(title)),
       body: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
+          constraints: const BoxConstraints(maxWidth: 520),
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+            padding: const EdgeInsets.fromLTRB(18, 4, 18, 32),
             children: [child],
           ),
         ),
