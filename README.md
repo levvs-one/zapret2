@@ -15,6 +15,7 @@
 [Установка](docs/getting-started.md) ·
 [Чем отличается от zapret2](docs/prosvet-vs-zapret2.md) ·
 [Диагностика](docs/troubleshooting.md) ·
+[Поддержка](SUPPORT.md) ·
 [FAQ](docs/faq.md) ·
 [Документация](docs/README.md)
 
@@ -178,6 +179,7 @@
 | **[Диагностика](docs/troubleshooting.md)** | типовые проблемы и данные для issue |
 | **[Архитектура](docs/architecture.md)** | Controller, backend-механизмы и lifecycle invariants |
 | **[Release process](docs/releasing.md)** | VERSION, CI, Windows smoke-test и публикация |
+| **[Поддержка](SUPPORT.md)** | куда идти с багом, DPI-отчётом, новым сервисом или вопросом |
 | **[Contributing](CONTRIBUTING.md)** | сервисы, стратегии, проверки и правила PR |
 | **[Changelog](CHANGELOG.md)** | изменения по версиям |
 
@@ -277,6 +279,7 @@ tools/                build и engine verification helpers
 
 [Скачать](https://github.com/levvs-one/zapret2/releases/latest) ·
 [Документация](docs/README.md) ·
+[Поддержка](SUPPORT.md) ·
 [Сообщить о проблеме](https://github.com/levvs-one/zapret2/issues/new/choose)
 
 </div>
