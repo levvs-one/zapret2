@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,6 +16,7 @@ concurrency:
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -23,13 +25,22 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - name: Restore dependencies
+        run: |
+          flutter pub get
+          git diff --exit-code -- pubspec.lock
+      - name: Verify release version
+        shell: bash
+        run: |
+          version="$(tr -d '\r\n' < VERSION)"
+          grep -q "^version: $version+" pubspec.yaml
+      - run: dart format --output=none --set-exit-if-changed lib test tool tools
       - run: flutter analyze
       - run: flutter test
 
   engine:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -44,6 +55,7 @@ jobs:
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     needs: check
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -53,19 +65,25 @@ jobs:
         with:
           channel: stable
           cache: true
+      - run: flutter pub get
       - run: ./tools/fetch-engine.ps1
         shell: pwsh
-      - run: flutter build windows --release
+      - name: Build Windows application
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          flutter build windows --release --build-name="$version" --dart-define="PROSVET_VERSION=$version"
       - name: Build installer
         shell: pwsh
         run: |
+          $version = (Get-Content VERSION -Raw).Trim()
           choco install innosetup --version=6.7.1 -y --no-progress
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          & $iscc "/DMyAppVersion=0.1.0" "installer\prosvet.iss"
+          & $iscc "/DMyAppVersion=$version" "installer\prosvet.iss"
       - name: Smoke-test installer and uninstaller
         shell: pwsh
         run: |
-          $setup = Get-Item "installer\Output\Prosvet-0.1.0-Setup.exe"
+          $setup = Get-Item "installer\Output\Prosvet-*-Setup.exe"
           $target = Join-Path $env:TEMP "ProsvetInstallSmoke"
           Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
           if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
@@ -73,22 +91,25 @@ jobs:
           $uninstall = Get-Item "$target\unins000.exe"
           Start-Process $uninstall.FullName -ArgumentList "/VERYSILENT","/NORESTART" -Wait
           if (Test-Path "$target\prosvet.exe") { throw "uninstall left the executable behind" }
-      - name: Package portable build
+      - name: Package CI artifacts
         shell: pwsh
         run: |
+          $version = (Get-Content VERSION -Raw).Trim()
           $bundle = "build/windows/x64/runner/Release"
-          Copy-Item LICENSE, THIRD_PARTY_NOTICES.md $bundle
-          Compress-Archive -Path "$bundle/*" -DestinationPath Prosvet-windows-x64.zip
+          Copy-Item LICENSE,THIRD_PARTY_NOTICES.md $bundle
+          Compress-Archive -Path "$bundle/*" -DestinationPath "Prosvet-$version-windows-x64.zip"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: Prosvet-windows-x64
           path: |
-            Prosvet-windows-x64.zip
-            installer/Output/Prosvet-0.1.0-Setup.exe
+            Prosvet-*-windows-x64.zip
+            installer/Output/Prosvet-*-Setup.exe
+          if-no-files-found: error
+          retention-days: 14
 
-
-  docs-screenshots:
+  ui-snapshots:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -98,7 +119,7 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get
-      - name: Locate snapshot fonts
+      - name: Locate deterministic snapshot fonts
         shell: bash
         run: |
           font="$(fc-match -f '%{file}' 'DejaVu Sans')"
@@ -107,14 +128,14 @@ jobs:
           test -f "$icons"
           echo "PROSVET_DOC_FONT=$font" >> "$GITHUB_ENV"
           echo "PROSVET_ICON_FONT=$icons" >> "$GITHUB_ENV"
-      - run: flutter test tool/render_docs_test.dart
-      - name: Verify README screenshots are current
-        run: git diff --exit-code -- docs/off.png docs/on.png docs/settings.png
+      - name: Render UI reference snapshots
+        run: flutter test tool/render_docs_test.dart
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        if: always()
         with:
-          name: prosvet-doc-screenshots
+          name: prosvet-ui-snapshots
           path: |
             docs/off.png
             docs/on.png
             docs/settings.png
+          if-no-files-found: error
+          retention-days: 14
