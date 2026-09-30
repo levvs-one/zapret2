@@ -4,209 +4,211 @@
 
 # Просвет
 
-**Точечный доступ к нужным сервисам без системного VPN.**  
-Windows-клиент поверх zapret2, Smart DNS и локального Telegram proxy.
+**Точечный доступ к нужным сервисам на Windows — без общего VPN-туннеля и ручной сборки сетевых правил.**
 
-[![Release](https://img.shields.io/github/v/release/levvs-one/zapret2?label=release&style=flat-square)](https://github.com/levvs-one/zapret2/releases/latest)
-[![CI](https://img.shields.io/github/actions/workflow/status/levvs-one/zapret2/ci.yml?branch=main&label=CI&style=flat-square)](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml)
-![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0B57D0?style=flat-square&logo=windows11&logoColor=white)
-[![License](https://img.shields.io/badge/license-MIT-2f3136?style=flat-square)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/levvs-one/zapret2?style=flat-square&label=release)](https://github.com/levvs-one/zapret2/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/levvs-one/zapret2/ci.yml?branch=main&style=flat-square&label=CI)](https://github.com/levvs-one/zapret2/actions/workflows/ci.yml)
+[![Windows](https://img.shields.io/badge/Windows-10%20%2F%2011-0078D4?style=flat-square)](#системные-требования)
+[![License](https://img.shields.io/github/license/levvs-one/zapret2?style=flat-square)](LICENSE)
 
-**[Скачать последнюю версию](https://github.com/levvs-one/zapret2/releases/latest)** ·
+[Скачать](https://github.com/levvs-one/zapret2/releases/latest) ·
 [Установка](docs/getting-started.md) ·
 [Чем отличается от zapret2](docs/prosvet-vs-zapret2.md) ·
+[Диагностика](docs/troubleshooting.md) ·
 [FAQ](docs/faq.md) ·
-[Диагностика](docs/troubleshooting.md)
+[Документация](docs/README.md)
 
 </div>
 
 ---
 
-## Что это
+## Скачать
 
-Просвет — не ещё одна папка с батниками и не общий VPN-туннель.
+Для обычной установки используйте **Setup.exe**. Portable-сборка нужна только если вы не хотите устанавливать приложение.
 
-Он даёт единый Windows-интерфейс для трёх разных механизмов и включает каждый только там, где он нужен:
-
-| Сервисы | Проблема | Что делает Просвет |
+| Вариант | Для кого | Файл |
 | --- | --- | --- |
-| **YouTube, Discord** | DPI / замедление / блокировка трафика | запускает zapret2 через WinDivert только для нужных доменов |
-| **ChatGPT, Gemini, Claude, Copilot, Spotify** | региональные ограничения на стороне сервиса | создаёт точечные Windows NRPT-правила и использует Smart DNS |
-| **Telegram Desktop** | проблемы с доступом к дата-центрам / медиа | поднимает локальный MTProto-over-WebSocket proxy |
+| **Setup — рекомендуется** | обычная установка, меню Пуск, корректный uninstall | `Prosvet-<version>-Setup.exe` |
+| **Portable** | запуск из отдельной папки без установки | `Prosvet-<version>-windows-x64.zip` |
+| **Контрольные суммы** | проверка целостности скачанного файла | `SHA256SUMS.txt` |
 
-Остальной трафик продолжает идти напрямую.
+**[Открыть последний GitHub Release →](https://github.com/levvs-one/zapret2/releases/latest)**
 
-### В двух словах
+> Текущие Windows-бинарники не подписаны коммерческим Authenticode-сертификатом. SmartScreen может показать «Неизвестный издатель». Скачивайте сборки только из GitHub Releases и при необходимости сверяйте SHA-256.
 
-- одна кнопка вместо ручной сборки стратегий;
-- отдельный переключатель для каждого сервиса;
-- рабочая DPI-стратегия запоминается для конкретной сети;
-- автоматический cleanup процессов и системных правил;
-- tray, автозапуск, installer и portable-сборка;
-- без аккаунта, рекламы и телеметрии.
+## Что такое Просвет
 
----
+Просвет — это Windows-приложение, которое **автоматически выбирает и управляет разными сетевыми механизмами для разных сервисов**.
 
-## Как выглядит
+Он не строит один глобальный туннель для всего трафика.
 
-<p align="center">
-  <img src="docs/off.png" width="29%" alt="Просвет выключен">
-  &nbsp;&nbsp;
-  <img src="docs/on.png" width="29%" alt="Просвет включен">
-  &nbsp;&nbsp;
-  <img src="docs/settings.png" width="29%" alt="Настройки Просвета">
-</p>
-
-Интерфейс намеренно небольшой: состояние, список сервисов, диагностика и настройки. Сетевой движок не вываливается на пользователя десятками параметров.
-
----
-
-## Скачать и установить
-
-Перейдите в **[GitHub Releases](https://github.com/levvs-one/zapret2/releases/latest)**.
-
-| Файл | Для кого |
+| Сценарий | Что использует Просвет |
 | --- | --- |
-| **`Prosvet-<version>-Setup.exe`** | обычная установка: меню Пуск, uninstall, нормальный lifecycle |
-| **`Prosvet-<version>-windows-x64.zip`** | portable-вариант без установки |
-| **`SHA256SUMS.txt`** | контрольные суммы релизных файлов |
+| YouTube, Discord | zapret2 + WinDivert для DPI-сценариев |
+| ChatGPT, Gemini, Claude, Copilot, Spotify | Windows NRPT + Smart DNS только для нужных доменов |
+| Telegram Desktop | локальный MTProto-over-WebSocket proxy |
 
-### Быстрый старт
-
-1. Скачайте Setup из последнего релиза.
-2. При желании сверьте SHA-256 по `SHA256SUMS.txt`.
-3. Установите Просвет и запустите его.
-4. Оставьте включёнными только нужные сервисы.
-5. Нажмите кнопку питания.
-6. Для Telegram один раз нажмите **«Подключить Telegram Desktop»**.
-
-Полная инструкция, SmartScreen, portable и удаление: **[docs/getting-started.md](docs/getting-started.md)**.
-
-> Бинарники пока не подписаны коммерческим Authenticode-сертификатом. Windows SmartScreen может показать предупреждение о неизвестном издателе. Скачивайте сборки только из GitHub Releases и сверяйте SHA-256, если для вас это важно.
-
----
+Остальной трафик не отправляется через общий VPN.
 
 ## Чем это отличается от обычного zapret2
 
-**zapret2 — низкоуровневый anti-DPI engine. Просвет — готовый Windows-продукт вокруг конкретных пользовательских сценариев.**
+**zapret2 — низкоуровневый anti-DPI engine. Просвет — готовый пользовательский продукт вокруг нескольких механизмов, где zapret2 является только одним из backend-компонентов.**
 
 | | Просвет | zapret2 напрямую |
 | --- | --- | --- |
-| Главная задача | открыть поддерживаемые сервисы без ручной настройки | дать максимальную гибкость для обхода DPI |
-| UI | готовое Windows-приложение | в основном CLI / конфигурация |
-| Стратегии DPI | подбираются и запоминаются приложением | пользователь управляет стратегиями сам |
-| Smart DNS | встроен | не является задачей zapret2 |
-| Telegram proxy | встроен | не является задачей zapret2 |
-| Cleanup / lifecycle | приложение управляет процессами и NRPT | зависит от вашей конфигурации / обвязки |
-| Installer / tray / autostart | есть | не является основной целью проекта |
-| Гибкость | намеренно ограниченная | значительно выше |
-| Роутеры / OpenWRT / BSD | нет | да, zapret2 рассчитан и на эти сценарии |
+| Windows GUI | **Да** | Не основная задача проекта |
+| Установка / uninstall | **Setup + cleanup** | Требует собственной обвязки |
+| One-click start/stop | **Да** | Конфигурация вручную |
+| Готовый каталог сервисов | **Да** | Hostlist/filters настраивает пользователь |
+| Память рабочей DPI-стратегии по сети | **Да** | Пользователь управляет стратегиями сам |
+| Проверка доступности сервисов | **Да** | Внешняя логика |
+| Smart DNS для региональных сервисов | **Да** | Нет |
+| Telegram local proxy | **Да** | Нет |
+| Tray / autostart / single-instance | **Да** | Внешняя обвязка |
+| Полный контроль Lua/filters/hostlists | Ограниченно | **Да** |
+| Linux / OpenWRT / BSD | Нет | **Да** |
 
-Если вам нужны произвольные hostlist, свои Lua-стратегии, маршрутизатор или тонкая ручная настройка — используйте **zapret2 напрямую**.  
-Если нужно открыть несколько популярных сервисов на Windows и не заниматься ручной конфигурацией — для этого существует Просвет.
+Если нужен полный контроль над zapret2 — используйте zapret2 напрямую. Если нужен **готовый Windows-клиент для поддерживаемых сценариев**, Просвет убирает ручную настройку, lifecycle и cleanup из пользовательского процесса.
 
-Подробное сравнение: **[docs/prosvet-vs-zapret2.md](docs/prosvet-vs-zapret2.md)**.
+Подробно: **[Просвет vs zapret2](docs/prosvet-vs-zapret2.md)**.
 
----
+## Интерфейс
 
-## Что меняется в Windows
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <img src="docs/off.png" alt="Главный экран Просвета — выключено"><br>
+      <sub>Выключено: системные правила не применены</sub>
+    </td>
+    <td width="50%" align="center">
+      <img src="docs/on.png" alt="Главный экран Просвета — включено"><br>
+      <sub>Включено: выбранные сервисы активны и проверены</sub>
+    </td>
+  </tr>
+</table>
 
-Просвет не устанавливает корневые сертификаты, браузерные расширения или собственную системную службу.
+<p align="center">
+  <img src="docs/settings.png" width="460" alt="Настройки Просвета">
+</p>
 
-При включении он может:
+Скриншоты генерируются детерминированно и проверяются CI как отдельный job.
 
-- запустить `winws2.exe` и WinDivert для DPI-сервисов;
-- создать NRPT-правила для выбранных Smart DNS доменов;
-- запустить локальный Telegram proxy на `127.0.0.1`;
-- создать задачу Task Scheduler `Prosvet`, если включён автозапуск;
-- хранить настройки и журнал в `%LOCALAPPDATA%\Prosvet`.
+## Как начать
 
-При выключении и удалении приложение старается убрать собственное системное состояние. После аварийного завершения cleanup повторяется при следующем запуске.
+1. Откройте **[последний релиз](https://github.com/levvs-one/zapret2/releases/latest)**.
+2. Скачайте `Prosvet-<version>-Setup.exe`.
+3. При желании сверьте SHA-256 по `SHA256SUMS.txt`.
+4. Установите приложение и запустите его с требуемыми правами.
+5. Оставьте включёнными только нужные сервисы и нажмите кнопку питания.
+6. Для Telegram один раз нажмите **«Подключить Telegram Desktop»**.
 
-Подробнее: **[Security](SECURITY.md)** · **[Privacy](PRIVACY.md)**.
-
----
+Полная инструкция, включая SmartScreen, portable, обновление, автозапуск и удаление: **[Установка и первый запуск](docs/getting-started.md)**.
 
 ## Поддерживаемые сервисы
 
-| Сервис | Механизм | Что покрывается |
+| Группа | Сервисы | Механизм |
 | --- | --- | --- |
-| YouTube | zapret2 / DPI | видео и веб |
-| Discord | zapret2 / DPI | веб, голос, демонстрация экрана |
-| Telegram Desktop | local proxy | медиа и файлы |
-| Gemini / AI Studio / NotebookLM | Smart DNS | домены Google AI |
-| ChatGPT / Sora / Codex | Smart DNS | домены OpenAI |
-| Claude | Smart DNS | домены Anthropic |
-| Copilot | Smart DNS | Microsoft / GitHub Copilot |
-| Spotify | Smart DNS | веб и клиентские домены |
+| DPI | YouTube, Discord | zapret2 / WinDivert |
+| Smart DNS | ChatGPT, Gemini, AI Studio, NotebookLM, Claude, Copilot, Spotify | Windows NRPT |
+| Telegram | Telegram Desktop | локальный MTProto-over-WebSocket proxy |
 
-Поддержка сервиса не означает изменение региона аккаунта, платёжного профиля или номера телефона. См. **[FAQ](docs/faq.md)**.
+Поддержка сервиса означает, что в приложении есть готовая конфигурация и lifecycle для него. Это не обещание, что любой провайдер и любая сеть будут вести себя одинаково.
 
----
+## Что Просвет делает с Windows
 
-## Если не работает
+При включении приложение может:
 
-Начните с **[диагностики](docs/troubleshooting.md)**.
+- запустить `winws2.exe` / WinDivert для выбранных DPI-сервисов;
+- создать собственные NRPT-правила для доменов выбранных Smart DNS-сервисов;
+- запустить локальный Telegram proxy;
+- при включённом автозапуске создать задачу Task Scheduler `Prosvet`.
 
-Самые частые причины:
+При выключении Просвет останавливает свои дочерние процессы и удаляет свои NRPT-правила. После аварийного завершения startup cleanup пытается убрать собственные leftovers на следующем запуске.
 
-- браузерный Secure DNS / DoH обходит Windows NRPT;
-- одновременно запущен другой VPN, zapret или WinDivert-клиент;
-- проблема не в сети, а в регионе аккаунта;
-- Telegram proxy ещё не подключён в Telegram Desktop;
-- антивирус блокирует WinDivert / `winws2.exe`.
+Просвет **не устанавливает собственный root CA**, **не расшифровывает HTTPS** и **не создаёт общий системный VPN-туннель**.
 
-Если проблема остаётся, откройте **[Issue](https://github.com/levvs-one/zapret2/issues/new/choose)** и приложите версию Просвета, Windows, провайдера/тип сети и журнал.
+## Системные требования
 
----
+- Windows 10 или Windows 11, x64;
+- права администратора для системных сетевых механизмов;
+- доступ в интернет для самих сервисов;
+- для Smart DNS браузерный Secure DNS / DoH не должен обходить Windows NRPT.
 
-## Почему релизу можно доверять больше, чем случайному архиву
+## Безопасность и доверие
 
-Каждый pull request и `main` проходят автоматические проверки:
+Просвет работает с системным сетевым состоянием, поэтому release-процесс специально сделан строгим:
 
-```text
-format
-  ↓
-flutter analyze
-  ↓
-unit / widget / lifecycle tests
-  ↓
-zapret2 parser dry-run
-  ↓
-Windows release build
-  ↓
-Setup install / uninstall smoke-test
-  ↓
-portable artifact
-```
+- версия zapret2 зафиксирована;
+- архив движка проверяется по SHA-256;
+- CI проверяет format, analyzer и tests;
+- сформированные аргументы проверяются парсером самого zapret2;
+- Windows release build собирается в CI;
+- Setup проходит автоматическую установку и удаление;
+- release публикуется вместе с `SHA256SUMS.txt`;
+- релизные GitHub Actions закреплены по commit SHA.
 
-Release workflow публикует:
+Подробнее:
 
-- Setup;
-- portable ZIP;
-- единый `SHA256SUMS.txt`.
+- **[Security model](SECURITY.md)**
+- **[Privacy](PRIVACY.md)**
+- **[Third-party notices](THIRD_PARTY_NOTICES.md)**
 
-Версия zapret2 фиксирована, а скачиваемый engine проверяется по SHA-256 перед сборкой.
+## Если что-то не работает
 
----
+Не начинайте с переустановки Windows и отключения антивируса.
+
+Сначала откройте **[Диагностику](docs/troubleshooting.md)**. Там разобраны:
+
+- Secure DNS / DoH;
+- конфликт со вторым VPN, zapret или WinDivert-клиентом;
+- регион аккаунта у AI-сервисов;
+- Telegram proxy;
+- остаточные NRPT-правила;
+- предупреждения антивируса.
+
+Если проблема остаётся, создайте **[Issue](https://github.com/levvs-one/zapret2/issues/new/choose)**. Шаблон подскажет, какие данные приложить.
 
 ## Документация
 
 | Документ | Что внутри |
 | --- | --- |
-| **[Установка](docs/getting-started.md)** | Setup, portable, SmartScreen, первый запуск, удаление |
-| **[Просвет vs zapret2](docs/prosvet-vs-zapret2.md)** | зачем нужен этот проект и где лучше использовать raw zapret2 |
-| **[FAQ](docs/faq.md)** | VPN, регионы аккаунтов, Telegram, безопасность, обновления |
-| **[Диагностика](docs/troubleshooting.md)** | типовые проблемы и что приложить к issue |
-| **[Архитектура](docs/architecture.md)** | lifecycle и устройство движков |
-| **[Security](SECURITY.md)** | модель безопасности и проверка релизов |
-| **[Privacy](PRIVACY.md)** | что хранится локально и что уходит в сеть |
-| **[Contributing](CONTRIBUTING.md)** | разработка, тесты и правила PR |
+| **[Установка и первый запуск](docs/getting-started.md)** | Setup, portable, SHA-256, SmartScreen, Telegram, autostart, update, uninstall |
+| **[Просвет vs zapret2](docs/prosvet-vs-zapret2.md)** | зачем существует проект и когда лучше использовать raw zapret2 |
+| **[FAQ](docs/faq.md)** | VPN, IP, права администратора, телеметрия, Smart DNS |
+| **[Диагностика](docs/troubleshooting.md)** | типовые проблемы и данные для issue |
+| **[Архитектура](docs/architecture.md)** | Controller, backend-механизмы и lifecycle invariants |
+| **[Release process](docs/releasing.md)** | VERSION, CI, Windows smoke-test и публикация |
+| **[Contributing](CONTRIBUTING.md)** | сервисы, стратегии, проверки и правила PR |
 | **[Changelog](CHANGELOG.md)** | изменения по версиям |
 
----
+## Архитектура в одном экране
 
-## Для разработчиков
+```text
+                      ┌──────────────────────┐
+                      │      Flutter UI      │
+                      └──────────┬───────────┘
+                                 │
+                      ┌──────────▼───────────┐
+                      │      Controller      │
+                      │ serialized lifecycle │
+                      └──────┬─────┬─────┬───┘
+                             │     │     │
+                 ┌───────────┘     │     └─────────────┐
+                 ▼                 ▼                   ▼
+        zapret2 / WinDivert   Windows NRPT      Telegram proxy
+             DPI              Smart DNS       MTProto over WS
+```
+
+`Controller` сериализует системные изменения: start, stop и изменение сервисов не должны одновременно менять Windows и оставлять систему в промежуточном состоянии.
+
+Подробнее: **[Архитектура](docs/architecture.md)**.
+
+## Разработка
+
+<details>
+<summary><strong>Локальная разработка и проверки</strong></summary>
+
+Нужен Flutter stable. Для production Windows build нужна Windows-машина.
 
 ```bash
 flutter pub get
@@ -215,43 +217,66 @@ flutter analyze
 flutter test
 ```
 
-UI без системных сетевых изменений:
+UI без системного движка:
 
 ```bash
-flutter run -d windows -- --demo
+flutter run -d linux -- --demo
 ```
 
-Production build:
+Windows release build:
 
 ```powershell
 ./tools/fetch-engine.ps1
 flutter build windows --release
 ```
 
-Архитектура: **[docs/architecture.md](docs/architecture.md)**.  
-Правила contribution: **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+`tools/fetch-engine.ps1` скачивает фиксированную версию zapret2 и проверяет SHA-256.  
+`tools/verify-engine-args.sh` проверяет сформированные аргументы через parser zapret2.
 
----
+Перед PR прочитайте **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
-## Credits
+</details>
 
-Просвет использует и развивает идеи нескольких open-source проектов:
+## Структура репозитория
 
-- **[bol-van/zapret2](https://github.com/bol-van/zapret2)** — DPI engine;
-- **[Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy)** — Telegram-over-WebSocket approach;
-- **[Xbox DNS](https://xbox-dns.ru)** — Smart DNS provider.
+```text
+lib/src/
+  catalog/            каталог сервисов и доменов
+  core/               lifecycle, settings, probes, backend
+  engine/zapret/      стратегии и процесс winws2
+  engine/smartdns/    NRPT и Smart DNS
+  engine/telegram/    локальный Telegram proxy
+  platform/           Windows shell, autostart, paths
+  ui/                 desktop UI
 
-Сторонние лицензии: **[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)**.
+engine/               интеграция с zapret2
+installer/            Inno Setup
+docs/                 пользовательская и техническая документация
+test/                 unit, widget и lifecycle tests
+tool/                 deterministic UI snapshot rendering
+tools/                build и engine verification helpers
+```
+
+## Проект и лицензии
+
+Просвет использует и интегрирует сторонние open-source компоненты:
+
+- [bol-van/zapret2](https://github.com/bol-van/zapret2) — DPI engine;
+- [Flowseal/tg-ws-proxy](https://github.com/Flowseal/tg-ws-proxy) — основа Telegram-over-WebSocket логики;
+- WinDivert и Cygwin runtime — как зависимости zapret2.
+
+Подробности и лицензии: **[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)**.
+
+Код Просвета распространяется по лицензии **[MIT](LICENSE)**.
 
 ---
 
 <div align="center">
 
-**Просвет** · Windows 10/11 · MIT License · no telemetry
+**Просвет** — небольшой Windows-клиент с ограниченной поверхностью, понятным lifecycle и несколькими сетевыми механизмами вместо одного универсального туннеля.
 
-[Releases](https://github.com/levvs-one/zapret2/releases/latest) ·
-[Issues](https://github.com/levvs-one/zapret2/issues) ·
-[Security](SECURITY.md) ·
-[Changelog](CHANGELOG.md)
+[Скачать](https://github.com/levvs-one/zapret2/releases/latest) ·
+[Документация](docs/README.md) ·
+[Сообщить о проблеме](https://github.com/levvs-one/zapret2/issues/new/choose)
 
 </div>
