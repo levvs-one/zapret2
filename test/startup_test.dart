@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/main.dart';
-import 'package:prosvet/src/core/settings.dart';
+import 'package:zapret2/main.dart';
+import 'package:zapret2/src/core/settings.dart';
 
 void main() {
   test('startup connection follows only the user setting', () {
