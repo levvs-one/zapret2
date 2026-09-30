@@ -1,6 +1,6 @@
 # engine
 
-Files that Prosvet ships next to `winws2.exe`.
+Files that zapret2 ships next to `winws2.exe`.
 
 - `lua/prosvet.lua` extends the zapret2 `circular` orchestrator with a per-network memory of the strategy that works for each host.
 - `lists/*.txt` are hostlists. A profile applies only to these domains and all of their subdomains.
