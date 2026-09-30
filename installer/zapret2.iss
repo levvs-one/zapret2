@@ -1,4 +1,4 @@
-#define MyAppName "Просвет"
+#define MyAppName "zapret2"
 #ifndef MyAppVersion
 #define MyAppVersion "0.1.0"
 #endif
@@ -14,12 +14,12 @@ AppPublisherURL=https://github.com/levvs-one/zapret2
 AppSupportURL=https://github.com/levvs-one/zapret2/issues
 AppUpdatesURL=https://github.com/levvs-one/zapret2/releases/latest
 DefaultDirName={autopf}\Prosvet
-DefaultGroupName=Просвет
+DefaultGroupName=zapret2
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-OutputBaseFilename=Prosvet-{#MyAppVersion}-Setup
+OutputBaseFilename=zapret2-{#MyAppVersion}-Setup
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
@@ -28,8 +28,8 @@ UninstallDisplayIcon={app}\{#MyAppExeName}
 CloseApplications=yes
 RestartApplications=no
 VersionInfoVersion={#MyAppVersion}.0
-VersionInfoProductName=Просвет
-VersionInfoDescription=Просвет — доступ к сервисам без VPN
+VersionInfoProductName=zapret2
+VersionInfoDescription=zapret2 — selective access without a system-wide VPN
 
 [Languages]
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
@@ -44,7 +44,7 @@ Name: "{group}\Просвет"; Filename: "{app}\{#MyAppExeName}"
 Name: "{group}\Удалить Просвет"; Filename: "{uninstallexe}"
 
 [Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Запустить Просвет"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Запустить zapret2"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 Filename: "{sys}\schtasks.exe"; Parameters: "/Delete /TN ""Prosvet"" /F"; Flags: runhidden waituntilterminated

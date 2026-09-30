@@ -1,5 +1,5 @@
 name: Не работает
-description: Сервис не открывается или Просвет ведёт себя странно
+description: Сервис не открывается или zapret2 ведёт себя странно
 labels: [bug]
 body:
   - type: dropdown
@@ -28,8 +28,8 @@ body:
   - type: input
     id: version
     attributes:
-      label: Версия Просвета и Windows
-      placeholder: 0.1.0, Windows 11 24H2
+      label: Версия zapret2 и Windows
+      placeholder: 0.3.0, Windows 11 24H2
   - type: textarea
     id: log
     attributes:

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/src/platform/autostart.dart';
-import 'package:prosvet/src/platform/shell.dart';
+import 'package:zapret2/src/platform/autostart.dart';
+import 'package:zapret2/src/platform/shell.dart';
 
 class _FakeShell implements Shell {
   final calls = <({String executable, List<String> args})>[];

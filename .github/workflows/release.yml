@@ -80,7 +80,7 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          flutter build windows --release --build-name="$env:VERSION" --dart-define="PROSVET_VERSION=$env:VERSION"
+          flutter build windows --release --build-name="$env:VERSION" --dart-define="ZAPRET2_VERSION=$env:VERSION"
 
       - name: Build installer
         if: steps.release_check.outputs.exists != 'true'
@@ -90,15 +90,15 @@ jobs:
         run: |
           choco install innosetup --version=6.7.1 -y --no-progress
           $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-          & $iscc "/DMyAppVersion=$env:VERSION" "installer\prosvet.iss"
+          & $iscc "/DMyAppVersion=$env:VERSION" "installer\zapret2.iss"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Smoke-test installer
         if: steps.release_check.outputs.exists != 'true'
         shell: pwsh
         run: |
-          $setup = Get-Item "installer\Output\Prosvet-*-Setup.exe"
-          $target = Join-Path $env:TEMP "ProsvetReleaseSmoke"
+          $setup = Get-Item "installer\Output\zapret2-*-Setup.exe"
+          $target = Join-Path $env:TEMP "zapret2ReleaseSmoke"
           Start-Process $setup.FullName -ArgumentList "/VERYSILENT","/NORESTART","/DIR=$target" -Wait
           if (-not (Test-Path "$target\prosvet.exe")) { throw "installed executable is missing" }
           if (-not (Test-Path "$target\engine\winws2.exe")) { throw "installed engine is missing" }
@@ -116,9 +116,9 @@ jobs:
           $bundle = "build/windows/x64/runner/Release"
           if (-not (Test-Path "$bundle/engine/winws2.exe")) { throw "engine is missing in bundle" }
           Copy-Item LICENSE,THIRD_PARTY_NOTICES.md $bundle
-          $zip = "dist/Prosvet-$env:VERSION-windows-x64.zip"
+          $zip = "dist/zapret2-$env:VERSION-windows-x64.zip"
           Compress-Archive -Path "$bundle/*" -DestinationPath $zip -CompressionLevel Optimal
-          $setup = Get-Item "installer\Output\Prosvet-$env:VERSION-Setup.exe"
+          $setup = Get-Item "installer\Output\zapret2-$env:VERSION-Setup.exe"
           Copy-Item $setup.FullName "dist/$($setup.Name)"
 
           Get-ChildItem dist | Sort-Object Name | ForEach-Object {
@@ -145,4 +145,4 @@ jobs:
           TAG: ${{ steps.version.outputs.tag }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          gh release create $env:TAG dist/* --target $env:GITHUB_SHA --title "Просвет $env:VERSION" --notes-file notes.md --latest
+          gh release create $env:TAG dist/* --target $env:GITHUB_SHA --title "zapret2 $env:VERSION" --notes-file notes.md --latest

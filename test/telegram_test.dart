@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pointycastle/export.dart';
-import 'package:prosvet/src/engine/smartdns/dns_probe.dart';
-import 'package:prosvet/src/engine/telegram/msg_splitter.dart';
-import 'package:prosvet/src/engine/telegram/obfuscated2.dart';
-import 'package:prosvet/src/engine/telegram/ws_client.dart';
+import 'package:zapret2/src/engine/smartdns/dns_probe.dart';
+import 'package:zapret2/src/engine/telegram/msg_splitter.dart';
+import 'package:zapret2/src/engine/telegram/obfuscated2.dart';
+import 'package:zapret2/src/engine/telegram/ws_client.dart';
 
 Uint8List _bytes(int n, Random r) =>
     Uint8List.fromList(List.generate(n, (_) => r.nextInt(256)));

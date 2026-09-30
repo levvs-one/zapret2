@@ -17,8 +17,8 @@ import 'src/platform/paths.dart';
 import 'src/platform/shell.dart';
 
 const version = String.fromEnvironment(
-  'PROSVET_VERSION',
-  defaultValue: '0.2.0',
+  'ZAPRET2_VERSION',
+  defaultValue: '0.3.0',
 );
 
 bool shouldConnectAtStartup(Settings settings) => settings.connectOnLaunch;
@@ -46,7 +46,7 @@ Future<void> main(List<String> args) async {
   await windowManager.ensureInitialized();
   await windowManager.waitUntilReadyToShow(
     const WindowOptions(
-      title: 'Просвет',
+      title: 'zapret2',
       size: Size(460, 760),
       minimumSize: Size(400, 600),
       center: true,
@@ -60,7 +60,7 @@ Future<void> main(List<String> args) async {
   );
 
   runApp(
-    ProsvetApp(
+    Zapret2App(
       controller: controller,
       autostart: Platform.isWindows && !demo
           ? Autostart(shell, Platform.resolvedExecutable)

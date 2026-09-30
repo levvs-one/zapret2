@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/src/engine/zapret/strategies.dart';
-import 'package:prosvet/src/engine/zapret/winws_args.dart';
+import 'package:zapret2/src/engine/zapret/strategies.dart';
+import 'package:zapret2/src/engine/zapret/winws_args.dart';
 
 void main() {
   const launch = WinwsLaunch(

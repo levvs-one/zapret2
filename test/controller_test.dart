@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:prosvet/src/catalog/services.dart';
-import 'package:prosvet/src/core/backend.dart';
-import 'package:prosvet/src/core/controller.dart';
-import 'package:prosvet/src/core/settings.dart';
+import 'package:zapret2/src/catalog/services.dart';
+import 'package:zapret2/src/core/backend.dart';
+import 'package:zapret2/src/core/controller.dart';
+import 'package:zapret2/src/core/settings.dart';
 
 class FakeBackend implements Backend {
   final calls = <String>[];
